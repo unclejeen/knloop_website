@@ -1,0 +1,106 @@
+{
+  "ui": {
+    "nav.docs": "Docs",
+    "search.button": "Search docs",
+    "search.placeholder": "Search docs...",
+    "search.noResults": "No results found.",
+    "search.hint": "Type keywords to search the docs...",
+    "toc.title": "On this page",
+    "sidebar.open": "Open table of contents",
+    "sidebar.title": "Catalog",
+    "sidebar.aria": "Docs",
+    "docs.fallback": "Docs",
+    "pager.prev": "Previous",
+    "pager.next": "Next",
+    "notfound.title": "Not found",
+    "notfound.body": "The page you requested does not exist.",
+    "notfound.back": "Back to home",
+    "theme.toggle": "Toggle theme",
+    "copy.idle": "Copy code to clipboard",
+    "copy.copied": "Code copied to clipboard",
+    "anchor.idle": "Copy link to heading",
+    "anchor.copied": "Link copied to clipboard",
+    "install.manual": "Manual install",
+    "install.agent": "Install with an agent"
+  },
+  "home": {
+    "hero": {
+      "badge": "Experimental pre-1.0",
+      "titleLine1": "A programming language",
+      "titleLine2": "built for agents",
+      "lede": "knloop explores what a programming language can be when agents are the primary user from day one. The goal is a language that is easy to learn instantly, deterministic to check and repair, standard-library first, and explicit enough that most tasks have one obvious path.",
+      "note": "The current toolchain is available for exploration, but today's syntax and APIs are not a contract. Expect breaking changes while knloop finds what works best for agents. Run it in safe environments, not production systems."
+    },
+    "pillars": [
+      {
+        "metric": "Learnable",
+        "label": "On demand",
+        "title": "A small surface area",
+        "description": "knloop aims to be a language agents can learn on the job: regular syntax, very few special cases, and compiler feedback that points to the next edit."
+      },
+      {
+        "metric": "Stdlib",
+        "label": "First",
+        "title": "Less dependency hunting",
+        "description": "The long-term goal is a standard library broad and consistent enough that most programs start from documented APIs instead of choosing packages."
+      },
+      {
+        "metric": "Inspectable",
+        "label": "Tool-readable",
+        "title": "Deterministic repair loops",
+        "description": "The toolchain is designed to expose diagnostics, graphs, size reports, explanations, and fixes as structured data that agents can consume."
+      }
+    ],
+    "features": [
+      {
+        "title": "Pre-1.0 by design",
+        "description": "Current syntax and APIs are not a contract. Expect breaking changes while knloop finds what works best for agents."
+      },
+      {
+        "title": "Safe environments only",
+        "description": "Security vulnerabilities are expected. Run and develop knloop in isolated environments, not production systems or sensitive infrastructure."
+      },
+      {
+        "title": "Exploration over mastery",
+        "description": "Try the current shape, inspect the output, and send feedback. Details will keep shifting as the experiment advances."
+      },
+      {
+        "title": "One obvious path",
+        "description": "The language should favor a few regular patterns over many interchangeable styles."
+      },
+      {
+        "title": "Stdlib over syntax sugar",
+        "description": "New capabilities should usually exist as documented APIs before they become new syntax."
+      },
+      {
+        "title": "Agent-readable toolchain",
+        "description": "Diagnostics, graph facts, size reports, and fix metadata should be available as structured output."
+      },
+      {
+        "title": "Explicit side effects",
+        "description": "Access to the outside world, fallibility, and resource use should stay visible to readers and tools."
+      },
+      {
+        "title": "No legacy commitments",
+        "description": "When a cleaner agent-oriented design wins, knloop can replace old behavior instead of carrying compatibility paths."
+      },
+      {
+        "title": "Developer experience as the goal",
+        "description": "Checking, reviewing, explaining, and fixing code should feel direct, even though the language is deliberately explicit."
+      }
+    ],
+    "direction": {
+      "label": "Direction",
+      "title": "Regularity over cleverness.",
+      "body": "knloop favors explicit capabilities and standard-library APIs over syntax for every convenience. If it makes code easier for agents to generate, check, and repair, some code may be more verbose for humans."
+    },
+    "cta": {
+      "title": "Explore with us.",
+      "body": "Install the compiler, run the examples, and see what the experiment can do today. The most useful feedback is anything that helps agents guess less.",
+      "button": "Get started"
+    },
+    "footer": {
+      "tagline": "Agent-first language design, still under active exploration."
+    }
+  }
+}

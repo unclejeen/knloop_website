@@ -1,0 +1,44 @@
+{
+  "name": "knloop-web",
+  "private": true,
+  "version": "0.1.3",
+  "type": "module",
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "prebuild": "node scripts/generate-search-index.mjs",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test src/tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "@tailwindcss/typography": "^0.5.20",
+    "clsx": "^2.1.1",
+    "geist": "^1.7.0",
+    "next": "^16.3.6",
+    "next-mdx-remote": "^6.0.0",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "rehype-autolink-headings": "^7.1.0",
+    "rehype-pretty-code": "^0.14.3",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^4.0.2",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "github-slugger": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2",
+    "@types/react": "^19.3.0"
+  }
+}
