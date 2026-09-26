@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "node scripts/generate-search-index.mjs",
+    "images": "node scripts/optimize-home-shots.mjs",
     "build": "next build",
     "start": "next start",
     "test": "node --test src/tests/*.test.mjs"

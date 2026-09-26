@@ -1,2 +1,15 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
+
+# 首页截图：文件名里带内容哈希（scripts/optimize-home-shots.mjs 生成），
+# 换图会换名字，所以可以放心一年不可变缓存。
+/home/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 这两个 SVG 名字不带哈希（icon 是 favicon，可能被外部引用），
+# 用一天 + 后台再验证：回头客直接吃缓存，不回头客也不会卡着旧的。
+/knloop-logo.svg
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/knloop-icon.svg
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

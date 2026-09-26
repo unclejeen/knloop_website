@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import localFont from "next/font/local";
 import { SiteHeader } from "@/components/site-header";
@@ -20,6 +19,38 @@ const DisplayCjk = localFont({
   style: "normal",
   display: "swap",
   variable: "--font-display-cjk",
+});
+
+/**
+ * Geist Mono：不在首屏的关键路径上，所以不预载。
+ *
+ * geist 包给的 GeistMono 是 preload: true，会和 Geist Sans、中文子集一起
+ * 在 HTML 解析前就抢带宽；它 71 KB，而首页真正先用到它的是滚动到下面才出现的
+ * 窗口标题栏（文档页是代码块）。preload: false 之后浏览器按 @font-face
+ * 用到才取，display: swap 期间先用回退字体，不挡渲染。
+ *
+ * 字形文件是从 geist@1.7.2 的 node_modules 里拷出来的（版本记在
+ * src/app/fonts/README.md），fallback / adjustFontFallback 和 geist
+ * 自己那份定义逐字保持一致，所以回退渲染和以前一样。
+ */
+const GeistMono = localFont({
+  src: "./fonts/geist-mono-variable.woff2",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+  display: "swap",
+  adjustFontFallback: false,
+  fallback: [
+    "ui-monospace",
+    "SFMono-Regular",
+    "Roboto Mono",
+    "Menlo",
+    "Monaco",
+    "Liberation Mono",
+    "DejaVu Sans Mono",
+    "Courier New",
+    "monospace",
+  ],
+  preload: false,
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://knloop.ai";

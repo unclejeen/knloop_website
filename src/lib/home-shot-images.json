@@ -1,0 +1,191 @@
+{
+  "generator": "scripts/optimize-home-shots.mjs",
+  "shots": {
+    "local": {
+      "master": "markdown.png",
+      "width": 1648,
+      "height": 999,
+      "variants": [
+        {
+          "width": 480,
+          "height": 290,
+          "avif": "/home/local.31a6b78a.480.avif",
+          "avifBytes": 7986,
+          "webp": "/home/local.ebf587da.480.webp",
+          "webpBytes": 10222
+        },
+        {
+          "width": 832,
+          "height": 504,
+          "avif": "/home/local.270d188d.832.avif",
+          "avifBytes": 20161,
+          "webp": "/home/local.90581f55.832.webp",
+          "webpBytes": 24288
+        },
+        {
+          "width": 1648,
+          "height": 1000,
+          "avif": "/home/local.163e5cc1.1648.avif",
+          "avifBytes": 53758,
+          "webp": "/home/local.79ce3f95.1648.webp",
+          "webpBytes": 63374
+        }
+      ]
+    },
+    "agents": {
+      "master": "ai.png",
+      "width": 1210,
+      "height": 870,
+      "variants": [
+        {
+          "width": 480,
+          "height": 346,
+          "avif": "/home/agents.37f9faba.480.avif",
+          "avifBytes": 7483,
+          "webp": "/home/agents.99f0ae4b.480.webp",
+          "webpBytes": 9550
+        },
+        {
+          "width": 832,
+          "height": 598,
+          "avif": "/home/agents.dc44b8b2.832.avif",
+          "avifBytes": 18276,
+          "webp": "/home/agents.3d7c410b.832.webp",
+          "webpBytes": 21750
+        },
+        {
+          "width": 1210,
+          "height": 870,
+          "avif": "/home/agents.e66ad1e7.1210.avif",
+          "avifBytes": 15245,
+          "webp": "/home/agents.c8f557b2.1210.webp",
+          "webpBytes": 36584
+        }
+      ]
+    },
+    "mcp": {
+      "master": "knloop-mcp.webp",
+      "width": 4358,
+      "height": 2568,
+      "variants": [
+        {
+          "width": 480,
+          "height": 282,
+          "avif": "/home/mcp.8610d804.480.avif",
+          "avifBytes": 5047,
+          "webp": "/home/mcp.6335a805.480.webp",
+          "webpBytes": 8888
+        },
+        {
+          "width": 832,
+          "height": 490,
+          "avif": "/home/mcp.8ebbb923.832.avif",
+          "avifBytes": 11115,
+          "webp": "/home/mcp.d2b7f8c6.832.webp",
+          "webpBytes": 19632
+        },
+        {
+          "width": 1664,
+          "height": 980,
+          "avif": "/home/mcp.1faa0c25.1664.avif",
+          "avifBytes": 26827,
+          "webp": "/home/mcp.cb659d04.1664.webp",
+          "webpBytes": 48258
+        }
+      ]
+    },
+    "git": {
+      "master": "knloop-git.webp",
+      "width": 4480,
+      "height": 2232,
+      "variants": [
+        {
+          "width": 480,
+          "height": 240,
+          "avif": "/home/git.97160e91.480.avif",
+          "avifBytes": 3210,
+          "webp": "/home/git.5980c39c.480.webp",
+          "webpBytes": 4654
+        },
+        {
+          "width": 832,
+          "height": 414,
+          "avif": "/home/git.9724cc52.832.avif",
+          "avifBytes": 7079,
+          "webp": "/home/git.b9f7fb22.832.webp",
+          "webpBytes": 10708
+        },
+        {
+          "width": 1664,
+          "height": 830,
+          "avif": "/home/git.d1d57c82.1664.avif",
+          "avifBytes": 18576,
+          "webp": "/home/git.c14981cb.1664.webp",
+          "webpBytes": 27632
+        }
+      ]
+    },
+    "editor": {
+      "master": "rwa.png",
+      "width": 1263,
+      "height": 1013,
+      "variants": [
+        {
+          "width": 480,
+          "height": 384,
+          "avif": "/home/editor.87a6e92d.480.avif",
+          "avifBytes": 15853,
+          "webp": "/home/editor.25483dd7.480.webp",
+          "webpBytes": 20090
+        },
+        {
+          "width": 832,
+          "height": 668,
+          "avif": "/home/editor.0ad9910a.832.avif",
+          "avifBytes": 38294,
+          "webp": "/home/editor.7b63e803.832.webp",
+          "webpBytes": 45032
+        },
+        {
+          "width": 1263,
+          "height": 1014,
+          "avif": "/home/editor.42eeff59.1263.avif",
+          "avifBytes": 65969,
+          "webp": "/home/editor.d1d2339e.1263.webp",
+          "webpBytes": 78728
+        }
+      ]
+    },
+    "start": {
+      "master": "k.png",
+      "width": 1539,
+      "height": 1040,
+      "variants": [
+        {
+          "width": 480,
+          "height": 324,
+          "avif": "/home/start.0b1e11fa.480.avif",
+          "avifBytes": 5194,
+          "webp": "/home/start.3c6e2239.480.webp",
+          "webpBytes": 7030
+        },
+        {
+          "width": 832,
+          "height": 562,
+          "avif": "/home/start.27c71265.832.avif",
+          "avifBytes": 12445,
+          "webp": "/home/start.d8c56555.832.webp",
+          "webpBytes": 15558
+        },
+        {
+          "width": 1539,
+          "height": 1040,
+          "avif": "/home/start.102d22df.1539.avif",
+          "avifBytes": 19774,
+          "webp": "/home/start.a21ca6e7.1539.webp",
+          "webpBytes": 38028
+        }
+      ]
+    }
+  }
+}
