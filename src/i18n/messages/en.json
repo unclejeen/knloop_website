@@ -19,88 +19,71 @@
     "copy.idle": "Copy code to clipboard",
     "copy.copied": "Code copied to clipboard",
     "anchor.idle": "Copy link to heading",
-    "anchor.copied": "Link copied to clipboard",
-    "install.manual": "Manual install",
-    "install.agent": "Install with an agent"
+    "anchor.copied": "Link copied to clipboard"
   },
   "home": {
     "hero": {
-      "badge": "Experimental pre-1.0",
-      "titleLine1": "A programming language",
-      "titleLine2": "built for agents",
-      "lede": "knloop explores what a programming language can be when agents are the primary user from day one. The goal is a language that is easy to learn instantly, deterministic to check and repair, standard-library first, and explicit enough that most tasks have one obvious path.",
-      "note": "The current toolchain is available for exploration, but today's syntax and APIs are not a contract. Expect breaking changes while knloop finds what works best for agents. Run it in safe environments, not production systems."
+      "title": "An agent-native knowledge base",
+      "lede": "knloop explores what knowledge management looks like when agents are the primary user. The goal is alignment between people and agents: everything lives as .md files, so nothing is tied to one app and agents can work with it directly.",
+      "note": "knloop will keep exploring better ways to work alongside agents.",
+      "download": "Download for {platform}",
+      "downloadAll": "Other platforms"
     },
-    "pillars": [
+    "flow": [
       {
-        "metric": "Learnable",
-        "label": "On demand",
-        "title": "A small surface area",
-        "description": "knloop aims to be a language agents can learn on the job: regular syntax, very few special cases, and compiler feedback that points to the next edit."
+        "label": "Human",
+        "title": "Set the rules and constraints",
+        "body": "Write down specs, SOPs, QA, retrospectives, and context.\nJudgment comes from you; the rules are yours to define."
       },
       {
-        "metric": "Stdlib",
-        "label": "First",
-        "title": "Less dependency hunting",
-        "description": "The long-term goal is a standard library broad and consistent enough that most programs start from documented APIs instead of choosing packages."
+        "label": "Agent",
+        "title": "Agents read",
+        "body": "Works natively with Claude Code / Codex and more.\nAgents read and write your notes over MCP."
       },
       {
-        "metric": "Inspectable",
-        "label": "Tool-readable",
-        "title": "Deterministic repair loops",
-        "description": "The toolchain is designed to expose diagnostics, graphs, size reports, explanations, and fixes as structured data that agents can consume."
+        "label": "Agent",
+        "title": "Agents do the work",
+        "body": "Agents work to your specs and write their output back.\nEach result becomes context for the next round."
+      },
+      {
+        "label": "Git",
+        "title": "Git keeps the trail",
+        "body": "Automatic commits and version control.\nEvery change is diffable, and you can roll back at any time."
       }
     ],
-    "features": [
-      {
-        "title": "Pre-1.0 by design",
-        "description": "Current syntax and APIs are not a contract. Expect breaking changes while knloop finds what works best for agents."
+    "sections": {
+      "local": {
+        "title": "Local-first, pure Markdown",
+        "description": "Stored natively on your own disk. Files stay clean, transparent, and portable — no format or platform lock-in."
       },
-      {
-        "title": "Safe environments only",
-        "description": "Security vulnerabilities are expected. Run and develop knloop in isolated environments, not production systems or sensitive infrastructure."
+      "agents": {
+        "title": "AI-native collaboration, out of the box",
+        "description": "Loads common agent CLIs automatically, no configuration. Works natively with Codex, Claude Code, Pi, DeepSeek Harness and more."
       },
-      {
-        "title": "Exploration over mastery",
-        "description": "Try the current shape, inspect the output, and send feedback. Details will keep shifting as the experiment advances."
+      "mcp": {
+        "title": "MCP built in, so outside agents can read and write",
+        "description": "Your notes are the agent's context. External agents can read and write, and their output lands back in the same vault."
       },
-      {
-        "title": "One obvious path",
-        "description": "The language should favor a few regular patterns over many interchangeable styles."
+      "git": {
+        "title": "Native Git, automatic commits and version control",
+        "description": "Documents are managed like code. Every change is recorded, every commit is diffable, so you can roll back whenever you want."
       },
-      {
-        "title": "Stdlib over syntax sugar",
-        "description": "New capabilities should usually exist as documented APIs before they become new syntax."
+      "editor": {
+        "title": "Visual block editor + Raw dual mode",
+        "description": "Switch seamlessly between block editing and RAW. Very large documents move into RAW mode automatically."
       },
-      {
-        "title": "Agent-readable toolchain",
-        "description": "Diagnostics, graph facts, size reports, and fix metadata should be available as structured output."
-      },
-      {
-        "title": "Explicit side effects",
-        "description": "Access to the outside world, fallibility, and resource use should stay visible to readers and tools."
-      },
-      {
-        "title": "No legacy commitments",
-        "description": "When a cleaner agent-oriented design wins, knloop can replace old behavior instead of carrying compatibility paths."
-      },
-      {
-        "title": "Developer experience as the goal",
-        "description": "Checking, reviewing, explaining, and fixing code should feel direct, even though the language is deliberately explicit."
+      "start": {
+        "title": "Low learning curve, ready from the first minute",
+        "description": "The interaction feels natural — open it and write. Cmd+K and shortcuts are intuitive, so newcomers get productive fast."
       }
-    ],
-    "direction": {
-      "label": "Direction",
-      "title": "Regularity over cleverness.",
-      "body": "knloop favors explicit capabilities and standard-library APIs over syntax for every convenience. If it makes code easier for agents to generate, check, and repair, some code may be more verbose for humans."
     },
     "cta": {
       "title": "Explore with us.",
-      "body": "Install the compiler, run the examples, and see what the experiment can do today. The most useful feedback is anything that helps agents guess less.",
+      "body": "Install knloop, connect the agent you like, and try a better way of working.",
       "button": "Get started"
     },
     "footer": {
-      "tagline": "Agent-first language design, still under active exploration."
+      "tagline": "Efficient knowledge management tools for every knowledge worker and team."
     }
   }
 }

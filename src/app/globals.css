@@ -21,8 +21,10 @@
   --color-code-bg: #f5f5f5;
   --color-code-fg: #171717;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  /* Geist（自托管，geist 包的 variable 挂在 <html> 上）打头，后面是中文回退：
+     中文没有 Geist 字形，浏览器按字形逐字回退到系统的苹方 / 微软雅黑。 */
+  --font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", sans-serif;
+  --font-mono: var(--font-geist-mono), "SFMono-Regular", Consolas, "Liberation Mono", Menlo, "Microsoft YaHei UI", monospace;
 
   --container-content: 72rem;
 
@@ -223,4 +225,157 @@ body {
   background: transparent;
   border: 0;
   padding: 0;
+}
+
+/* ─── 首页首屏（一句话文案 → 应用界面预览）────────────
+   中间那个大 logo 已去掉，首屏只剩两块：文案 + 16:9 的应用预览。
+     · 头部之下先退 --home-copy-top 再放文案，文案底边到预览留 --home-copy-gap；
+     · Hero 外框固定 16:9（aspect-video），高度由宽度推出：整宽、最宽 72rem
+       （和站点内容宽度 --container-content 对齐）。
+   预览本身是项目内的组件（src/components/home-hero-app.tsx），按容器宽度
+   自适应排版，窄框只显示文档区，@md 起出侧栏、@2xl 起出右侧检查器；
+   中间的文档区可以滚动（唯一能交互的地方），其余部分是只读装饰。 */
+
+:root {
+  /* 支持的浏览器用 dvh，避免移动端地址栏收起时比例漂移 */
+  --home-vh: 1vh;
+  --home-hero-w: 100%; /* 整宽，宽度上限写在组件上（max-w-[72rem]） */
+  /* 外框的最小高度：16:9 算出来比它矮就用它——窄屏（手机、700~900px 的版面）
+     16:9 只有 200~370px，界面会被压扁；宽到 16:9 超过它之后自然回到 16:9。 */
+  --home-hero-min-h: min(70vh, 30rem);
+  --home-copy-top: clamp(2rem, 9vh, 6rem); /* 头部 → 文案顶边 */
+  --home-copy-gap: clamp(3rem, 9vh, 6rem); /* 文案底边 → 预览顶边 */
+
+  /* 展示级标题（hero / 各区块大标题 / 收尾）的字体栈：
+     Latin 走站点 Geist，中文走自托管的思源黑体子集（src/app/fonts/display-cjk.woff2），
+     子集里没有的字回退到本机思源黑体 / 苹方 / 微软雅黑。 */
+  --font-display: var(--font-geist-sans), var(--font-display-cjk), "Source Han Sans SC",
+    "Source Han Sans CN", "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --home-vh: 1dvh;
+  }
+}
+
+/* svh 更稳：移动端地址栏收起时外框不会跟着跳 */
+@supports (height: 100svh) {
+  :root {
+    --home-hero-min-h: min(70svh, 30rem);
+  }
+}
+
+/* ─── 首页 Hero 文案（logo 上方）──────────────────────
+   标题是 display 档，字号同时看视口宽和高（矮屏不会顶到页面顶部）；
+   字距按语言分档：拉丁收紧，中文回正——中文用负字距会挤在一起。
+   :lang 由 LocaleProvider 写在 <html> 上。
+
+   字体按字形回退，所以混排里只有中文会落到思源黑体上：
+     Latin → Geist（站点字体）
+     中文  → 自托管的思源黑体子集（约 2 KB，见 src/app/fonts/），
+             子集里没有的字回退到本机思源黑体 / 苹方 / 微软雅黑
+   字重 500：display 尺寸下不用给到 bold，机器上装的是可变字体，
+   能取到真实字重，font-synthesis: none 再兜一层假粗体。 */
+
+.home-hero-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-synthesis: none;
+  font-size: clamp(2rem, min(5.4vw, 7.5vh), 3.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+:lang(zh) .home-hero-title {
+  letter-spacing: 0;
+}
+
+/* 各区块大标题 / 收尾标题：与 hero 标题同一套字体、同一个字重，只是字号不同；
+   字距拉丁收紧、中文回正。 */
+.display-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-synthesis: none;
+  letter-spacing: -0.045em;
+}
+
+:lang(zh) .display-title {
+  letter-spacing: 0;
+}
+
+/* ─── 首页往下各块的滚动淡入 ─────────────────────────
+   纯 CSS 的 scroll-driven animation：元素进入视口时淡入 + 轻微上移。
+   不支持的浏览器（如 Firefox）直接显示内容，不做降级处理；
+   prefers-reduced-motion 下也不动。 */
+
+@keyframes home-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: home-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+  }
+}
+
+/* 打印 / 导出 PDF 时不会滚动，动画不触发，直接按最终状态显示 */
+@media print {
+  .reveal {
+    animation: none;
+  }
+}
+
+/* 预览中文档区的滚动条：细、低对比，别抢内容 */
+.home-app-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-fg) 22%, transparent) transparent;
+}
+
+.home-app-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.home-app-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.home-app-scroll::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-fg) 22%, transparent);
+}
+
+/* 预览状态栏里的明暗图标：跟随站点主题（显式 .dark/.light 或系统偏好） */
+.home-app-moon {
+  display: none;
+}
+
+.dark .home-app-sun {
+  display: none;
+}
+
+.dark .home-app-moon {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) .home-app-sun {
+    display: none;
+  }
+
+  :root:not(.light) .home-app-moon {
+    display: block;
+  }
 }

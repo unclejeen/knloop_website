@@ -2,8 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { DEFAULT_LOCALE, LOCALE_COOKIE, translate } from "./dictionaries";
-import type { Locale, MessageKey } from "./dictionaries";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, homeMessages, translate } from "./dictionaries";
+import type { HomeMessages, Locale, MessageKey } from "./dictionaries";
 
 type LocaleContextValue = {
   locale: Locale;
@@ -51,4 +51,9 @@ export function useLocale(): LocaleContextValue {
     return { locale: DEFAULT_LOCALE, setLocale: () => {}, t: (key) => translate(DEFAULT_LOCALE, key) };
   }
   return ctx;
+}
+
+/** 首页文案整块，随语言切换。 */
+export function useHomeMessages(): HomeMessages {
+  return homeMessages(useLocale().locale);
 }

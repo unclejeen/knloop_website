@@ -19,88 +19,71 @@
     "copy.idle": "复制代码到剪贴板",
     "copy.copied": "代码已复制到剪贴板",
     "anchor.idle": "复制锚点链接",
-    "anchor.copied": "锚点链接已复制",
-    "install.manual": "手动安装",
-    "install.agent": "Agent 安装"
+    "anchor.copied": "锚点链接已复制"
   },
   "home": {
     "hero": {
-      "badge": "1.0 前实验版本",
-      "titleLine1": "为 Agent 而生",
-      "titleLine2": "编程语言",
-      "lede": "knloop 探索当 Agent 从第一天起就是主要用户时，编程语言可以是什么样子。目标是打造一种易于即时学习、确定性检查和修复、标准库优先，且足够显式以至于大多数任务只有一条明显路径的语言。",
-      "note": "当前工具链可用于探索，但今天的语法和 API 不是契约。在 knloop 寻找最适合 Agent 的方案时，预期会有破坏性变更。请在安全环境中运行，而非生产系统。"
+      "title": "Agent 原生知识库",
+      "lede": "knloop 探索 Agent 作为主要用户时，知识管理可以是什么样子。目标是实现人机对齐，所有内容以 .md 格式存储，不绑定人类用户的同时 对 Agent 更友好。",
+      "note": "knloop 会继续探索更适合与 Agent 交互的方案。",
+      "download": "{platform} 版下载",
+      "downloadAll": "其它平台下载"
     },
-    "pillars": [
+    "flow": [
       {
-        "metric": "可学习",
-        "label": "按需学习",
-        "title": "小巧的表面积",
-        "description": "knloop 的目标是打造一种 Agent 可以在工作中学习的语言：规则语法、极少特殊情况，以及指向下一步编辑的编译器反馈。"
+        "label": "Human",
+        "title": "制定规则和约束",
+        "body": "写下规范、SOP、QA、复盘和上下文。\n判断由你沉淀，规则由你定义。"
       },
       {
-        "metric": "标准库",
-        "label": "优先",
-        "title": "更少的依赖搜索",
-        "description": "长期目标是拥有一个足够广泛且一致的标准库，使大多数程序从文档化的 API 开始，而不是从选择包开始。"
+        "label": "Agent",
+        "title": "Agent 读取",
+        "body": "原生支持 Claude Code / Codex 等。\nAgent 通过 MCP 读写你的笔记。"
       },
       {
-        "metric": "可检查",
-        "label": "工具可读",
-        "title": "确定性修复循环",
-        "description": "工具链旨在将诊断、图、大小报告、解释和修复方案作为 Agent 可消费的结构化数据暴露出来。"
+        "label": "Agent",
+        "title": "Agent 干活",
+        "body": "Agent 按你的规范执行，并回写产出。\n执行结果继续成为上下文，继续循环。"
+      },
+      {
+        "label": "Git",
+        "title": "Git 留痕",
+        "body": "自动 commit & 版本控制。\n每一次改动都可 diff，随时可以回退。"
       }
     ],
-    "features": [
-      {
-        "title": "设计上为 1.0 前版本",
-        "description": "当前的语法和 API 不是契约。在 knloop 寻找最适合 Agent 的方案时，预期会有破坏性变更。"
+    "sections": {
+      "local": {
+        "title": "本地优先，纯 Markdown",
+        "description": "本地磁盘原生存储。文件干净、透明、可迁移，不被格式和平台锁定。"
       },
-      {
-        "title": "仅限安全环境",
-        "description": "预期存在安全漏洞。请在隔离环境中运行和开发 knloop，而非生产系统或敏感基础设施。"
+      "agents": {
+        "title": "AI 原生协作，开箱即用",
+        "description": "自动加载常用 Agent CLI，无需配置。原生支持 Codex、Claude Code、Pi、DeepSeek Harness 等 AI Agent。"
       },
-      {
-        "title": "探索优于精通",
-        "description": "尝试当前的形态，检查输出，发送反馈。随着实验的推进，细节会不断变化。"
+      "mcp": {
+        "title": "内置 MCP，外部 Agent 也能读写",
+        "description": "你的笔记就是 Agent 的上下文。外部 Agent 可读、可写，产出写回同一个库。"
       },
-      {
-        "title": "一条明显的路径",
-        "description": "语言应倾向于少量规则模式，而非多种可互换的风格。"
+      "git": {
+        "title": "Git 原生集成，自动 commit & 版本控制",
+        "description": "文档像代码一样被管理。每一次改动都有记录，每一次提交都可 diff，方便随时回退。"
       },
-      {
-        "title": "标准库优于语法糖",
-        "description": "新能力通常应先存在于文档化的 API 中，再成为新语法。"
+      "editor": {
+        "title": "可视化块编辑 + Raw 双模式",
+        "description": "块编辑模式、RAW 两种模式无缝切换。超大文档自动进入 RAW 模式。"
       },
-      {
-        "title": "Agent 可读的工具链",
-        "description": "诊断、图事实、大小报告和修复元数据应作为结构化输出提供。"
-      },
-      {
-        "title": "显式副作用",
-        "description": "对外部世界的访问、可失败性和资源使用应对读者和工具保持可见。"
-      },
-      {
-        "title": "无遗留承诺",
-        "description": "当更清晰的面向 Agent 的设计胜出时，knloop 可以替换旧行为，而非携带兼容路径。"
-      },
-      {
-        "title": "开发者体验即目标",
-        "description": "检查、审查、解释和修复代码应当感觉直接，即使语言有意保持显式。"
+      "start": {
+        "title": "学习成本低，上手即用",
+        "description": "交互逻辑自然，打开就能写。Cmd+K 与快捷键符合直觉，新手也能快速进入状态。"
       }
-    ],
-    "direction": {
-      "label": "方向",
-      "title": "规则性优于巧妙性。",
-      "body": "knloop 倾向于显式能力和标准库 API，而非为每种便利提供语法。如果这让 Agent 更容易生成、检查和修复代码，某些代码对人类来说可能更冗长。"
     },
     "cta": {
       "title": "与我们一起探索。",
-      "body": "安装编译器，运行示例，检查实验今天能做什么。最有用的反馈是帮助 Agent 减少猜测的内容。",
+      "body": "安装 knloop 连接你喜欢的 Agent 尝试更好的工作方式。",
       "button": "开始使用"
     },
     "footer": {
-      "tagline": "Agent 优先的语言设计，仍在积极探索中。"
+      "tagline": "为每一位知识工作者和团队提供高效的知识管理工具。"
     }
   }
 }

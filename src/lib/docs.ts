@@ -9,12 +9,12 @@ export const docs: Doc[] = [
     descriptionEn: "",
     path: "/install",
     sourcePath: "/articles/install.md",
-    section: "学习",
+    section: "快速开始",
   },
 ];
 
 export const SECTION_LABELS: Record<string, { en: string }> = {
-  学习: { en: "Learn" },
+  快速开始: { en: "Quick start" },
 };
 
 export function groupBySection(allDocs: Doc[]): DocsGroup[] {

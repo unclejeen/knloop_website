@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ChevronDownIcon, HamburgerIcon } from "@/components/icons";
 import { Sheet, SheetTrigger, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { sectionLabel } from "@/lib/docs";
 import type { DocsGroup } from "@/lib/types";
 import { useLocale } from "@/i18n/locale";
 
@@ -14,7 +15,7 @@ type SidebarNavProps = {
 };
 
 function SidebarNav({ groups, activeSlug, onNavigate }: SidebarNavProps) {
-  const { t } = useLocale();
+  const { locale, t } = useLocale();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   function toggle(section: string) {
@@ -38,7 +39,8 @@ function SidebarNav({ groups, activeSlug, onNavigate }: SidebarNavProps) {
               onClick={() => toggle(group.section)}
               className="flex w-full cursor-pointer items-center justify-between rounded bg-transparent px-3 py-2 text-[0.6875rem] font-semibold uppercase tracking-[0.06em] text-muted transition hover:text-fg"
             >
-              <span>{group.section}</span>
+              {/* 显示名按语言取（快速开始 / Quick start），折叠状态仍用原始 section */}
+              <span>{sectionLabel(group.section, locale)}</span>
               <ChevronDownIcon className={`shrink-0 transition-transform ${isCollapsed ? "-rotate-90" : ""}`} />
             </button>
             <div
