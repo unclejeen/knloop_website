@@ -27,7 +27,8 @@
       "lede": "knloop 探索 Agent 作为主要用户时，知识管理可以是什么样子。目标是实现人机对齐，所有内容以 .md 格式存储，不绑定人类用户的同时 对 Agent 更友好。",
       "note": "knloop 会继续探索更适合与 Agent 交互的方案。",
       "download": "{platform} 版下载",
-      "downloadAll": "其它平台下载"
+      "downloadAll": "其它平台下载",
+      "comingSoon": "即将推出"
     },
     "flow": [
       {

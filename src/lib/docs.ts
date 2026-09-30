@@ -1,5 +1,7 @@
 import type { Doc, DocsGroup } from "./types";
 
+// 文档是手工登记的：articles/ 下的文件名不会自动变成路由，
+// 新加一篇文章要在下面加一条，slug / path 用小写（静态站路由区分大小写）。
 export const docs: Doc[] = [
   {
     slug: "install",
@@ -11,10 +13,21 @@ export const docs: Doc[] = [
     sourcePath: "/articles/install.md",
     section: "快速开始",
   },
+  {
+    slug: "feedback",
+    title: "问题反馈",
+    titleEn: "Feedback",
+    description: "反馈使用中遇到的问题和建议。",
+    descriptionEn: "Report problems and share feedback.",
+    path: "/feedback",
+    sourcePath: "/articles/Feedback.md",
+    section: "反馈",
+  },
 ];
 
 export const SECTION_LABELS: Record<string, { en: string }> = {
   快速开始: { en: "Quick start" },
+  反馈: { en: "Feedback" },
 };
 
 export function groupBySection(allDocs: Doc[]): DocsGroup[] {

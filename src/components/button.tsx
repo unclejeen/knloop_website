@@ -11,6 +11,8 @@ const VARIANTS = {
   default: "border-border bg-bg text-fg hover:border-fg",
   primary:
     "border-accent bg-accent text-accent-fg hover:bg-transparent hover:text-accent",
+  // 没有可下载的包时用：置灰、不可点（配合 <Button disabled>）
+  disabled: "cursor-not-allowed border-border bg-bg text-muted opacity-60",
 };
 
 type ButtonVariant = keyof typeof VARIANTS;

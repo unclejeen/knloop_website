@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { DEFAULT_DOWNLOAD, DOWNLOADS, detectPlatform } from "../lib/downloads.ts";
+import {
+  DEFAULT_DOWNLOAD,
+  DOWNLOADABLE_PLATFORMS,
+  GH_PROXY,
+  RELEASES_API_URL,
+  detectPlatform,
+  fetchLatestDownloadUrls,
+  pickAssetUrl,
+  proxyUrl,
+  resolveDownloadTarget,
+} from "../lib/downloads.ts";
 
 const UA = {
   windows:
@@ -35,6 +45,37 @@ function withUA(userAgent, maxTouchPoints, run) {
   }
 }
 
+/** 造一个 release 资产；直链格式和 GitHub API 返回的一致。 */
+function asset(name) {
+  return {
+    name,
+    browser_download_url: `https://github.com/unclejeen/knloop_website/releases/download/0.1.0-770/${name}`,
+  };
+}
+
+/** 最新的 0.1.0-770 真实资产：只有 Windows 安装包，没有 apk / Linux 包。 */
+const RELEASE_770 = [
+  asset("knloop_0.1.0-770_x64-setup.exe"),
+  asset("knloop_0.1.0-770_x64-setup.exe.sig"),
+  asset("latest.json"),
+];
+
+const WINDOWS_URL = `${GH_PROXY}/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-770/knloop_0.1.0-770_x64-setup.exe`;
+
+function fakeStorage() {
+  const map = new Map();
+  return {
+    getItem: (key) => (map.has(key) ? map.get(key) : null),
+    setItem: (key, value) => {
+      map.set(key, value);
+    },
+  };
+}
+
+function releaseResponse(assets) {
+  return { ok: true, status: 200, json: async () => ({ tag_name: "0.1.0-770", assets }) };
+}
+
 describe("download platform detection", () => {
   it("maps common desktop and mobile user agents", () => {
     assert.equal(withUA(UA.windows, 0, detectPlatform), "windows");
@@ -54,22 +95,111 @@ describe("download platform detection", () => {
   });
 });
 
-describe("download links", () => {
-  it("covers all five platforms", () => {
-    assert.deepEqual(Object.keys(DOWNLOADS).sort(), [
-      "android",
-      "ios",
-      "linux",
-      "macos",
-      "windows",
-    ]);
-    for (const [platform, target] of Object.entries(DOWNLOADS)) {
-      assert.ok(target.url.length > 0, platform + " needs a url");
-      assert.ok(target.label.length > 0, platform + " needs a label");
-    }
+describe("release asset picking", () => {
+  it("picks the Windows installer and ignores .sig / latest.json", () => {
+    assert.equal(pickAssetUrl(RELEASE_770, "windows"), WINDOWS_URL);
   });
 
-  it("falls back to the install guide", () => {
+  it("prefers a universal apk, then arm64, then any apk", () => {
+    assert.ok(
+      pickAssetUrl([asset("knloop_0.1.0-770_arm64.apk"), asset("knloop_0.1.0-770_universal.apk")], "android")
+        .endsWith("/knloop_0.1.0-770_universal.apk"),
+    );
+    assert.ok(
+      pickAssetUrl([asset("knloop_0.1.0-770_arm64-v8a.apk")], "android").endsWith("/knloop_0.1.0-770_arm64-v8a.apk"),
+    );
+  });
+
+  it("prefers AppImage, then deb", () => {
+    assert.ok(
+      pickAssetUrl([asset("knloop_0.1.0-770_amd64.deb"), asset("knloop_0.1.0-770_x86_64.AppImage")], "linux")
+        .endsWith("/knloop_0.1.0-770_x86_64.AppImage"),
+    );
+    assert.ok(
+      pickAssetUrl([asset("knloop_0.1.0-770_amd64.deb")], "linux").endsWith("/knloop_0.1.0-770_amd64.deb"),
+    );
+  });
+
+  it("returns null when the release has no asset for the platform", () => {
+    assert.equal(pickAssetUrl(RELEASE_770, "android"), null);
+    assert.equal(pickAssetUrl(RELEASE_770, "linux"), null);
+    assert.equal(pickAssetUrl([], "windows"), null);
+  });
+
+  it("runs asset urls through the accelerator", () => {
+    assert.equal(proxyUrl("https://github.com/a/b"), `${GH_PROXY}/https://github.com/a/b`);
+  });
+});
+
+describe("download targets", () => {
+  it("never offers macOS / iOS", () => {
+    assert.equal(resolveDownloadTarget("macos", { windows: WINDOWS_URL }), null);
+    assert.equal(resolveDownloadTarget("ios", { windows: WINDOWS_URL }), null);
+  });
+
+  it("keeps Android / Linux disabled until the release has their assets", () => {
+    assert.equal(resolveDownloadTarget("android", {}), null);
+    assert.equal(resolveDownloadTarget("linux", {}), null);
+  });
+
+  it("uses the latest release url when available", () => {
+    const apk = `${GH_PROXY}/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-770/knloop_0.1.0-770_universal.apk`;
+    assert.deepEqual(resolveDownloadTarget("android", { android: apk }), { label: "Android", url: apk });
+    assert.deepEqual(resolveDownloadTarget("linux", { linux: apk }), { label: "Linux", url: apk });
+  });
+
+  it("falls back to the static Windows installer when fetching fails", () => {
+    const target = resolveDownloadTarget("windows", {});
+    assert.equal(target.label, "Windows");
+    assert.ok(target.url.startsWith(`${GH_PROXY}/https://github.com/`));
+    assert.ok(target.url.endsWith(".exe"));
+  });
+
+  it("covers exactly the three download platforms, plus the install-guide fallback", () => {
+    assert.deepEqual([...DOWNLOADABLE_PLATFORMS].sort(), ["android", "linux", "windows"]);
     assert.equal(DEFAULT_DOWNLOAD.url, "/install");
+  });
+});
+
+describe("latest release lookup", () => {
+  it("requests the accelerated GitHub API and resolves platform urls", async () => {
+    const calls = [];
+    const storage = fakeStorage();
+    const urls = await fetchLatestDownloadUrls({
+      storage,
+      fetchImpl: async (url) => {
+        calls.push(String(url));
+        return releaseResponse(RELEASE_770);
+      },
+    });
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0], RELEASES_API_URL);
+    assert.ok(calls[0].startsWith(`${GH_PROXY}/https://api.github.com/repos/`));
+    assert.equal(urls.windows, WINDOWS_URL);
+    assert.equal(urls.android, undefined);
+    assert.equal(urls.linux, undefined);
+  });
+
+  it("serves the second call from cache", async () => {
+    const calls = [];
+    const storage = fakeStorage();
+    const fetchImpl = async (url) => {
+      calls.push(String(url));
+      return releaseResponse(RELEASE_770);
+    };
+
+    await fetchLatestDownloadUrls({ storage, fetchImpl });
+    await fetchLatestDownloadUrls({ storage, fetchImpl });
+    assert.equal(calls.length, 1);
+  });
+
+  it("throws on a failed request so the caller can fall back", async () => {
+    await assert.rejects(
+      fetchLatestDownloadUrls({
+        storage: fakeStorage(),
+        fetchImpl: async () => ({ ok: false, status: 403 }),
+      }),
+    );
   });
 });

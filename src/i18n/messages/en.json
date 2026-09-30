@@ -27,7 +27,8 @@
       "lede": "knloop explores what knowledge management looks like when agents are the primary user. The goal is alignment between people and agents: everything lives as .md files, so nothing is tied to one app and agents can work with it directly.",
       "note": "knloop will keep exploring better ways to work alongside agents.",
       "download": "Download for {platform}",
-      "downloadAll": "Other platforms"
+      "downloadAll": "Other platforms",
+      "comingSoon": "Coming soon"
     },
     "flow": [
       {
