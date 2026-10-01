@@ -3,7 +3,7 @@
 <!-- downloads:start -->
 
 > 本段由 `scripts/sync-install-downloads.mjs` 自动生成，本地用 `pnpm run sync:install` 刷新；
-> 每次发版流水线会自动更新，请勿手改。当前版本 **0.1.0-871**，全部产物见 [最新 Release](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/latest)。
+> 每次发版流水线会自动更新，请勿手改。当前版本 **0.1.0-871**，下面每个链接都走加速服务。
 
 ### Windows
 

@@ -5,7 +5,7 @@ import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
 
-import { GH_PROXY, RELEASES_PAGE_URL } from "../lib/downloads.ts";
+import { GH_PROXY } from "../lib/downloads.ts";
 import {
   BLOCK_END,
   BLOCK_START,
@@ -73,8 +73,11 @@ describe("install.md download links", () => {
       assert.ok(block.includes(`[knloop_${TAG}_${asset}](${url})`), `缺 ${asset} 的加速直链`);
     }
 
-    assert.ok(block.includes(RELEASES_PAGE_URL), "要给出最新 Release 入口");
     assert.ok(block.includes(TAG), "要写明当前版本");
+    // gh-proxy 代理 GitHub 网页会 403，所以块里只允许出现 release 资产直链。
+    for (const link of [...block.matchAll(/\]\((https?:\/\/[^)]+)\)/g)].map((match) => match[1])) {
+      assert.ok(link.includes("/releases/download/"), `${link} 不是资产直链`);
+    }
     assert.ok(!block.includes(".sig"), ".sig 不该进文档");
     assert.ok(!block.includes("latest.json"), "latest.json 不该进文档");
   });

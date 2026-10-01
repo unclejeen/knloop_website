@@ -21,7 +21,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { GITHUB_REPO, RELEASES_PAGE_URL, proxyUrl } from "../src/lib/downloads.ts";
+import { GITHUB_REPO, proxyUrl } from "../src/lib/downloads.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -70,7 +70,9 @@ export function renderInstallBlock(release) {
     BLOCK_START,
     "",
     "> 本段由 `scripts/sync-install-downloads.mjs` 自动生成，本地用 `pnpm run sync:install` 刷新；",
-    `> 每次发版流水线会自动更新，请勿手改。当前版本 **${tag || "未知"}**，全部产物见 [最新 Release](${RELEASES_PAGE_URL})。`,
+    // 不放 GitHub Release 网页链接：gh-proxy 只代理 release 资产，代理网页会 403，
+    // 而各平台的包下面已经全列出来了。
+    `> 每次发版流水线会自动更新，请勿手改。当前版本 **${tag || "未知"}**，下面每个链接都走加速服务。`,
     "",
   ];
 
