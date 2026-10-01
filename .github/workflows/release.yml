@@ -132,10 +132,23 @@ jobs:
               [ -f "$src.sig" ] && mv "$src.sig" "$BUNDLE/$1/$3.sig"
             fi
           }
+          # The .tar.gz variant only exists when the bundler emits one; on the
+          # 2026-10-01 run it did not (the release carries .AppImage + .AppImage.sig),
+          # so a missing one must not fail the job.
+          optional_canonicalize() {
+            local src
+            src=$(find "$BUNDLE/$1" -maxdepth 1 -name "$2" -print -quit)
+            [ -n "$src" ] || return 0
+            if [ "$(basename "$src")" != "$3" ]; then
+              mv "$src" "$BUNDLE/$1/$3"
+              [ -f "$src.sig" ] && mv "$src.sig" "$BUNDLE/$1/$3.sig"
+            fi
+          }
+
           canonicalize deb      '*.deb'             "knloop_${VERSION}_amd64.deb"
           canonicalize rpm      '*.rpm'             "knloop_${VERSION}_x86_64.rpm"
           canonicalize appimage '*.AppImage'        "knloop_${VERSION}_amd64.AppImage"
-          canonicalize appimage '*.AppImage.tar.gz' "knloop_${VERSION}_amd64.AppImage.tar.gz"
+          optional_canonicalize appimage '*.AppImage.tar.gz' "knloop_${VERSION}_amd64.AppImage.tar.gz"
           ls -1 "$BUNDLE/deb" "$BUNDLE/rpm" "$BUNDLE/appimage"
 
       - uses: actions/upload-artifact@v4
@@ -358,13 +371,13 @@ jobs:
           TAG="${{ needs.version.outputs.tag }}"
           REPO="${{ github.repository }}"
 
-          linux_tarball=$(basename "$(find artifacts/linux-bundles -name '*.AppImage.tar.gz' -print -quit)")
+          linux_artifact=$(basename "$(find artifacts/linux-bundles -name '*.AppImage' -print -quit)")
           windows_setup=$(basename "$(find artifacts/windows-bundles -name '*-setup.exe' -print -quit)")
-          linux_sig=$(cat "artifacts/linux-bundles/$linux_tarball.sig")
+          linux_sig=$(cat "artifacts/linux-bundles/$linux_artifact.sig")
           windows_sig=$(cat "artifacts/windows-bundles/$windows_setup.sig")
 
           VERSION="$VERSION" REPO="$REPO" TAG="$TAG" \
-          LINUX_URL="https://github.com/$REPO/releases/download/$TAG/$linux_tarball" \
+          LINUX_URL="https://github.com/$REPO/releases/download/$TAG/$linux_artifact" \
           LINUX_SIG="$linux_sig" \
           WINDOWS_URL="https://github.com/$REPO/releases/download/$TAG/$windows_setup" \
           WINDOWS_SIG="$windows_sig" node -e '
