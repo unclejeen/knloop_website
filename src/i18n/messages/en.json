@@ -28,7 +28,9 @@
       "note": "knloop will keep exploring better ways to work alongside agents.",
       "download": "Download for {platform}",
       "downloadAll": "Other platforms",
-      "comingSoon": "Coming soon"
+      "comingSoon": "Coming soon",
+      "installHint": "Read the install guide",
+      "installHintLinux": "Several Linux packages — pick yours in the install guide"
     },
     "flow": [
       {

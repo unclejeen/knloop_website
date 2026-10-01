@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button, ButtonLink } from "@/components/button";
 import { DownloadIcon } from "@/components/icons";
@@ -21,8 +22,17 @@ import { useHomeMessages } from "@/i18n/locale";
  * 挂载后还会拉一次最新 release，把 Windows / Android / Linux 的按钮换成
  * 仓库里最新版本的直链；拉不到就退回静态兜底。macOS / iOS，以及还没有产物的平台
  * （比如 APK 还没发出来时的 Android），渲染成置灰的「即将推出」，发新版后自动变成可下载。
+ *
+ * installHint：按钮下面再挂一条小字链接指向安装说明。Linux 的包有 deb / rpm / AppImage
+ * 好几个，按钮只能替用户猜一个（AppImage 优先），所以首屏要把「自己选版本」的入口摆出来。
  */
-export function DownloadButton({ className }: { className?: string }) {
+export function DownloadButton({
+  className,
+  installHint = false,
+}: {
+  className?: string;
+  installHint?: boolean;
+}) {
   const { hero } = useHomeMessages();
   const [platform, setPlatform] = useState<DownloadPlatform | null>(null);
   const [dynamicUrls, setDynamicUrls] = useState<Partial<Record<DownloadablePlatform, string>>>({});
@@ -45,36 +55,44 @@ export function DownloadButton({ className }: { className?: string }) {
   }, []);
 
   const target = platform ? resolveDownloadTarget(platform, dynamicUrls) : DEFAULT_DOWNLOAD;
-  // 文案是模板：中文「{platform}版下载」、英文 "Download for {platform}"；
+  // 文案是模板：中文「{platform} 版下载」、英文 "Download for {platform}"；
   // 认不出平台时用 downloadAll（其它平台下载 → 安装说明页）
   const label = platform
     ? hero.download.replace("{platform}", PLATFORM_LABELS[platform])
     : hero.downloadAll;
 
+  // 小字链接：Linux 看到的是「多个包自己选」的提示，其余平台是通用的安装说明入口
+  const hint = installHint ? (
+    <Link
+      href="/install"
+      className="mt-3 text-xs text-muted underline underline-offset-4 transition-colors hover:text-fg"
+    >
+      {platform === "linux" ? hero.installHintLinux : hero.installHint}
+    </Link>
+  ) : null;
+
   // 没有可下载的包：macOS / iOS，或产物还没发到 release 里的平台
   if (platform && !target) {
     const comingSoon = `${PLATFORM_LABELS[platform]} ${hero.comingSoon}`;
     return (
-      <Button
-        variant="disabled"
-        size="lg"
-        className={className}
-        disabled
-        aria-label={comingSoon}
-        title={comingSoon}
-      >
-        <DownloadIcon className="h-4 w-4 shrink-0" />
-        {hero.comingSoon}
-      </Button>
+      <div className={["inline-flex flex-col items-center", className].filter(Boolean).join(" ")}>
+        <Button variant="disabled" size="lg" disabled aria-label={comingSoon} title={comingSoon}>
+          <DownloadIcon className="h-4 w-4 shrink-0" />
+          {hero.comingSoon}
+        </Button>
+      </div>
     );
   }
 
   const linkTarget = target ?? DEFAULT_DOWNLOAD;
 
   return (
-    <ButtonLink href={linkTarget.url} variant="primary" size="lg" className={className} aria-label={label}>
-      <DownloadIcon className="h-4 w-4 shrink-0" />
-      {label}
-    </ButtonLink>
+    <div className={["inline-flex flex-col items-center", className].filter(Boolean).join(" ")}>
+      <ButtonLink href={linkTarget.url} variant="primary" size="lg" aria-label={label}>
+        <DownloadIcon className="h-4 w-4 shrink-0" />
+        {label}
+      </ButtonLink>
+      {hint}
+    </div>
   );
 }

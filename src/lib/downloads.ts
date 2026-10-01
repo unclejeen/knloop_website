@@ -71,12 +71,14 @@ export type ReleaseAsset = { name: string; browser_download_url: string };
  * 离线兜底：只在浏览器拉不到 release 时用。
  * Windows 指一个确认过存在的安装包（允许滞后，发新版时可以随手更新）；
  * Android / Linux 还没有静态产物，拉取失败时保持置灰。
+ * 安装说明页（articles/install.md）不走这里，它的链接由
+ * scripts/sync-install-downloads.mjs 跟着每次发版自动更新。
  */
 export const STATIC_DOWNLOADS: Partial<Record<DownloadablePlatform, DownloadTarget>> = {
   windows: {
     label: PLATFORM_LABELS.windows,
     url: proxyUrl(
-      `https://github.com/${GITHUB_REPO}/releases/download/0.1.0-770/knloop_0.1.0-770_x64-setup.exe`,
+      `https://github.com/${GITHUB_REPO}/releases/download/0.1.0-871/knloop_0.1.0-871_windows-x64-setup.exe`,
     ),
   },
 };

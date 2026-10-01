@@ -32,8 +32,9 @@ export function HomeHeroCopy() {
         <p className="mt-5 max-w-[38rem] text-pretty text-sm leading-relaxed text-muted md:mt-6 md:text-base">
           {hero.lede}
         </p>
-        {/* 下载按钮：按平台换链接，见表 src/lib/downloads.ts */}
-        <DownloadButton className="mt-12" />
+        {/* 下载按钮：按平台换链接，见表 src/lib/downloads.ts；
+            installHint 在按钮下方挂一条指向安装说明的小字链接（Linux 多个包自己选） */}
+        <DownloadButton className="mt-12" installHint />
       </div>
     </HomeSection>
   );
