@@ -263,14 +263,38 @@ jobs:
         with: { distribution: temurin, java-version: "17" }
 
       - if: steps.guard.outputs.ready == 'true'
-        uses: android-actions/setup-android@v3
+        name: Install the Android SDK command-line tools
+        # No third-party action here: android-actions/setup-android failed on the
+        # 2026-10-01 run (step 5) and its later steps never ran. The official
+        # cmdline-tools zip is the same thing without the dependency.
+        run: |
+          set -euo pipefail
+          SDK="$RUNNER_TEMP/android-sdk"
+          mkdir -p "$SDK/cmdline-tools"
+          curl -fsSL -o "$RUNNER_TEMP/cmdline-tools.zip" \
+            https://dl.google.com/android/repository/commandlinetools-linux-13114758_latest.zip
+          unzip -q "$RUNNER_TEMP/cmdline-tools.zip" -d "$SDK/cmdline-tools"
+          mv "$SDK/cmdline-tools/cmdline-tools" "$SDK/cmdline-tools/latest"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "$SDK/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
 
       - if: steps.guard.outputs.ready == 'true'
-        name: Install NDK 28.2.13676358
+        name: Install the NDK and the SDK packages the project pins
+        # Mirrors the versions the local toolchain has (compileSdk/targetSdk 36,
+        # ndkVersion 28.2.13676358 in src-tauri/gen/android/app/build.gradle.kts).
         run: |
-          sdkmanager "ndk;28.2.13676358" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/28.2.13676358" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_ROOT=${ANDROID_HOME}/ndk/28.2.13676358" >> "$GITHUB_ENV"
+          set -euo pipefail
+          yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses > /dev/null || true
+          sdkmanager --sdk_root="$ANDROID_HOME" --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.1.0" \
+            "build-tools;35.0.0" \
+            "build-tools;34.0.0" \
+            "ndk;28.2.13676358"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/28.2.13676358" >> "$GITHUB_ENV"
 
       - if: steps.guard.outputs.ready == 'true'
         uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
