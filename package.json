@@ -13,7 +13,8 @@
     "images": "node scripts/optimize-home-shots.mjs",
     "build": "next build",
     "start": "next start",
-    "test": "node --test src/tests/*.test.mjs"
+    "test": "node --test src/tests/*.test.mjs",
+    "sync:install": "node scripts/sync-install-downloads.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.3.0",

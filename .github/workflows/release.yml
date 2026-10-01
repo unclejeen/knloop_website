@@ -463,3 +463,41 @@ jobs:
               --title "knloop $VERSION" --notes "knloop $VERSION" "${assets[@]}"
           fi
           echo "### Published knloop $VERSION" >> "$GITHUB_STEP_SUMMARY"
+
+  # ── keep the download links in articles/install.md fresh ───────────────────────
+  # Asset names carry the version (knloop_0.1.0-871_linux-amd64.deb), so a link written
+  # by hand goes stale on the next release — install.md was still pointing at 0.1.0-844
+  # with an APK that had since been renamed. This job re-renders the marked block from
+  # the release that was just published, so the install page always offers the current
+  # packages (and lists every Linux variant, which the download button cannot choose).
+  sync-install-links:
+    name: Refresh articles/install.md download links
+    needs: [version, release]
+    if: ${{ needs.release.result == 'success' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      # node 24 on purpose: scripts/sync-install-downloads.mjs imports src/lib/downloads.ts.
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Rewrite the links from the release that was just published
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/sync-install-downloads.mjs --tag "${{ needs.version.outputs.tag }}"
+      - name: Commit when the links changed
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- articles/install.md; then
+            echo "articles/install.md 已是最新，无需提交。"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add articles/install.md
+          git commit -m "docs(install): 同步 knloop ${{ needs.version.outputs.version }} 的下载链接"
+          git pull --rebase origin "$DEFAULT_BRANCH"
+          git push origin "HEAD:$DEFAULT_BRANCH"
