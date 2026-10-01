@@ -151,10 +151,10 @@ jobs:
             fi
           }
 
-          canonicalize deb      '*.deb'             "knloop_${VERSION}_amd64.deb"
-          canonicalize rpm      '*.rpm'             "knloop_${VERSION}_x86_64.rpm"
-          canonicalize appimage '*.AppImage'        "knloop_${VERSION}_amd64.AppImage"
-          optional_canonicalize appimage '*.AppImage.tar.gz' "knloop_${VERSION}_amd64.AppImage.tar.gz"
+          canonicalize deb      '*.deb'             "knloop_${VERSION}_linux-amd64.deb"
+          canonicalize rpm      '*.rpm'             "knloop_${VERSION}_linux-x86_64.rpm"
+          canonicalize appimage '*.AppImage'        "knloop_${VERSION}_linux-amd64.AppImage"
+          optional_canonicalize appimage '*.AppImage.tar.gz' "knloop_${VERSION}_linux-amd64.AppImage.tar.gz"
           ls -1 "$BUNDLE/deb" "$BUNDLE/rpm" "$BUNDLE/appimage"
 
       - uses: actions/upload-artifact@v4
@@ -247,6 +247,21 @@ jobs:
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
         run: pnpm tauri build --target x86_64-pc-windows-msvc --bundles nsis
+
+      - name: Normalize the installer name
+        # knloop_<version>_windows-x64-setup.exe [ADR-0104]; the NSIS bundler writes
+        # knloop_<version>_x64-setup.exe, and the updater .sig must follow it.
+        shell: pwsh
+        run: |
+          $version = "${{ needs.version.outputs.version }}"
+          $dir = "src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis"
+          Get-ChildItem $dir -Filter "*-setup.exe" | ForEach-Object {
+            $target = Join-Path $dir "knloop_${version}_windows-x64-setup.exe"
+            $sig = "$($_.FullName).sig"
+            if ($_.FullName -ne $target) { Move-Item $_.FullName $target -Force }
+            if (Test-Path $sig) { Move-Item $sig "$target.sig" -Force }
+          }
+          Get-ChildItem $dir | ForEach-Object { $_.Name }
 
       - uses: actions/upload-artifact@v4
         with:
