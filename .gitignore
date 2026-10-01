@@ -4,3 +4,9 @@ out
 .env*.local
 *.tsbuildinfo
 next-env.d.ts
+
+# Signing material must never be committed (it lives in repository secrets).
+*.jks
+*.keystore
+*.key
+*.key.pub
