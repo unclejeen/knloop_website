@@ -29,7 +29,7 @@
       "download": "{platform} 版下载",
       "downloadAll": "其它平台下载",
       "comingSoon": "即将推出",
-      "installHint": "查看安装说明",
+      "installHint": "更多版本",
       "installHintLinux": "Linux 有多个安装包，去安装说明按发行版选择"
     },
     "flow": [
