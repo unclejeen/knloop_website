@@ -126,6 +126,27 @@ describe("release asset picking", () => {
     assert.equal(pickAssetUrl([], "windows"), null);
   });
 
+  // 真实的 0.1.0-871 资产名（平台前缀，ADR-0104）。改名却忘了改这里的后缀规则，
+  // 下载页会静默置灰——所以用发布出来的名字钉住。
+  it("picks the platform-prefixed 0.1.0-871 assets", () => {
+    const release871 = [
+      "knloop_0.1.0-871_android-arm64-v8a.apk",
+      "knloop_0.1.0-871_linux-amd64.AppImage",
+      "knloop_0.1.0-871_linux-amd64.AppImage.sig",
+      "knloop_0.1.0-871_linux-amd64.deb",
+      "knloop_0.1.0-871_linux-amd64.deb.sig",
+      "knloop_0.1.0-871_linux-x86_64.rpm",
+      "knloop_0.1.0-871_linux-x86_64.rpm.sig",
+      "knloop_0.1.0-871_windows-x64-setup.exe",
+      "knloop_0.1.0-871_windows-x64-setup.exe.sig",
+      "latest.json",
+    ].map(asset);
+
+    assert.match(pickAssetUrl(release871, "windows"), /knloop_0\.1\.0-871_windows-x64-setup\.exe$/);
+    assert.match(pickAssetUrl(release871, "linux"), /knloop_0\.1\.0-871_linux-amd64\.AppImage$/);
+    assert.match(pickAssetUrl(release871, "android"), /knloop_0\.1\.0-871_android-arm64-v8a\.apk$/);
+  });
+
   it("runs asset urls through the accelerator", () => {
     assert.equal(proxyUrl("https://github.com/a/b"), `${GH_PROXY}/https://github.com/a/b`);
   });
