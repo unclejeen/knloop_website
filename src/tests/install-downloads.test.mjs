@@ -10,6 +10,7 @@ import {
   BLOCK_END,
   BLOCK_START,
   INSTALL_DOC_PATH,
+  RELEASES_PAGE,
   renderInstallBlock,
   renderInstallDoc,
   replaceInstallBlock,
@@ -74,12 +75,25 @@ describe("install.md download links", () => {
     }
 
     assert.ok(block.includes(TAG), "要写明当前版本");
-    // gh-proxy 代理 GitHub 网页会 403，所以块里只允许出现 release 资产直链。
-    for (const link of [...block.matchAll(/\]\((https?:\/\/[^)]+)\)/g)].map((match) => match[1])) {
+    // 块里只有两种链接：走加速的 release 资产直链，以及 GitHub 直链的 release 网页
+    // （gh-proxy 代理网页会 403，所以网页链接不套加速前缀）。
+    const links = [...block.matchAll(/\]\((https?:\/\/[^)]+)\)/g)].map((match) => match[1]);
+    for (const link of links.filter((href) => href !== RELEASES_PAGE)) {
       assert.ok(link.includes("/releases/download/"), `${link} 不是资产直链`);
     }
+    assert.ok(links.includes(RELEASES_PAGE), "页头要给出 release 网页链接");
     assert.ok(!block.includes(".sig"), ".sig 不该进文档");
     assert.ok(!block.includes("latest.json"), "latest.json 不该进文档");
+  });
+
+  it("keeps the header short, points at the releases page and marks macOS / iOS as coming soon", () => {
+    const block = renderInstallBlock(release());
+
+    assert.ok(block.includes(`当前版本 **${TAG}**`), "页头要只写当前版本");
+    assert.ok(block.includes(`[releases](${RELEASES_PAGE})`), "页头要给出 release 网页链接");
+    assert.ok(!block.includes("本段由"), "页头不该再提脚本自动生成");
+    assert.ok(!block.includes("请勿手改"), "页头不该再提请勿手改");
+    assert.match(block, /### macOS \/ iOS\n\n即将推出。/, "macOS / iOS 只写即将推出");
   });
 
   it("lists the linux packages a button cannot choose between", () => {
@@ -129,9 +143,10 @@ describe("install.md download links", () => {
 
     const links = [...source.matchAll(/\]\((https?:\/\/[^)]+)\)/g)].map((match) => match[1]);
     assert.ok(links.length >= 5, `install.md 里的下载链接太少（${links.length}）`);
-    for (const link of links) {
+    for (const link of links.filter((href) => href !== RELEASES_PAGE)) {
       assert.ok(link.startsWith(`${GH_PROXY}/https://`), `${link} 没走加速服务`);
     }
+    assert.ok(links.includes(RELEASES_PAGE), "install.md 要保留 release 网页链接");
   });
 });
 

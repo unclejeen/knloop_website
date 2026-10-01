@@ -2,8 +2,7 @@
 
 <!-- downloads:start -->
 
-> 本段由 `scripts/sync-install-downloads.mjs` 自动生成，本地用 `pnpm run sync:install` 刷新；
-> 每次发版流水线会自动更新，请勿手改。当前版本 **0.1.0-871**，下面每个链接都走加速服务。
+> 当前版本 **0.1.0-871**，下列链接走 gh-proxy 加速服务，您也可以直接在 [releases](https://github.com/unclejeen/knloop_website/releases) 页面下载。
 
 ### Windows
 
@@ -21,6 +20,6 @@
 
 ### macOS / iOS
 
-还没有安装包，即将推出。
+即将推出。
 
 <!-- downloads:end -->

@@ -30,6 +30,12 @@ export const INSTALL_DOC_PATH = join(ROOT, "articles", "install.md");
 export const BLOCK_START = "<!-- downloads:start -->";
 export const BLOCK_END = "<!-- downloads:end -->";
 
+/**
+ * Release 网页地址（GitHub 直链）。这里不套 gh-proxy：加速服务只代理 release 资产，
+ * 代理网页会 403，所以网页链接交给浏览器直接访问 github.com。
+ */
+export const RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases`;
+
 /** 有安装包的平台，按文档里的顺序。 */
 const PLATFORMS = [
   { heading: "Windows", pattern: /setup\.exe$/i },
@@ -69,10 +75,8 @@ export function renderInstallBlock(release) {
   const lines = [
     BLOCK_START,
     "",
-    "> 本段由 `scripts/sync-install-downloads.mjs` 自动生成，本地用 `pnpm run sync:install` 刷新；",
-    // 不放 GitHub Release 网页链接：gh-proxy 只代理 release 资产，代理网页会 403，
-    // 而各平台的包下面已经全列出来了。
-    `> 每次发版流水线会自动更新，请勿手改。当前版本 **${tag || "未知"}**，下面每个链接都走加速服务。`,
+    // 网页链接用 GitHub 直链（RELEASES_PAGE）：gh-proxy 只代理 release 资产，代理网页会 403。
+    `> 当前版本 **${tag || "未知"}**，下列链接走 gh-proxy 加速服务，您也可以直接在 [releases](${RELEASES_PAGE}) 页面下载。`,
     "",
   ];
 
@@ -91,7 +95,7 @@ export function renderInstallBlock(release) {
   if (linux.length === 0) lines.push("- 还没有这个平台的安装包。", "");
   else lines.push(...linux, "");
 
-  lines.push("### macOS / iOS", "", "还没有安装包，即将推出。", "", BLOCK_END);
+  lines.push("### macOS / iOS", "", "即将推出。", "", BLOCK_END);
 
   return lines.join("\n");
 }
