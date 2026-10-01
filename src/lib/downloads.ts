@@ -1,12 +1,14 @@
 /**
  * 各平台下载地址 —— 唯一出处，改这个文件就行，组件不用动。
  *
- * Windows / Android / Linux 的安装包发在 GitHub Release 上。版本号不写死在代码里：
+ * Windows / Android 的安装包发在 GitHub Release 上。版本号不写死在代码里：
  * 页面在浏览器里经 gh-proxy 加速拉一次最新 release，按下面的 ASSET_PATTERNS
  * 认出各平台的产物，所以发了新版不用回来改地址。
  * macOS / iOS 还没有包，按钮置灰显示「即将推出」（见 resolveDownloadTarget）。
- * 拉取失败时 Windows 退回 STATIC_DOWNLOADS 里那个已知可用的直链，
- * Android / Linux 保持置灰；认不出平台时用 DEFAULT_DOWNLOAD（安装说明页）。
+ * Linux 有 AppImage / deb / rpm 好几个包，按钮不替用户猜，统一跳安装说明页
+ * （见 LINUX_DOWNLOAD_TARGET），让用户按发行版自己选。
+ * 拉取失败时 Windows 退回 STATIC_DOWNLOADS 里那个已知可用的直链，Android 保持置灰；
+ * 认不出平台时用 DEFAULT_DOWNLOAD（安装说明页）。
  */
 
 /** 发行包所在仓库：https://github.com/unclejeen/knloop_website/releases */
@@ -70,7 +72,7 @@ export type ReleaseAsset = { name: string; browser_download_url: string };
 /**
  * 离线兜底：只在浏览器拉不到 release 时用。
  * Windows 指一个确认过存在的安装包（允许滞后，发新版时可以随手更新）；
- * Android / Linux 还没有静态产物，拉取失败时保持置灰。
+ * Android 还没有静态产物，拉取失败时保持置灰；Linux 不走这里（见 LINUX_DOWNLOAD_TARGET）。
  * 安装说明页（articles/install.md）不走这里，它的链接由
  * scripts/sync-install-downloads.mjs 跟着每次发版自动更新。
  */
@@ -85,6 +87,16 @@ export const STATIC_DOWNLOADS: Partial<Record<DownloadablePlatform, DownloadTarg
 
 /** 认不出平台时的兜底：安装说明页（那里列了各平台的包） */
 export const DEFAULT_DOWNLOAD: DownloadTarget = { label: "knloop", url: "/install" };
+
+/**
+ * Linux 的包有 AppImage / deb / rpm 好几个，按钮替用户猜一个（以前是 AppImage 优先）
+ * 必然让另一半人下错包，所以 Linux 不解析直链，统一去安装说明页按发行版自己选。
+ * 按钮下面那句小字（home.hero.installHintLinux）就是同一件事的提示。
+ */
+export const LINUX_DOWNLOAD_TARGET: DownloadTarget = {
+  label: PLATFORM_LABELS.linux,
+  url: DEFAULT_DOWNLOAD.url,
+};
 
 /** 在 release 资产里按 ASSET_PATTERNS 找平台对应的安装包，返回加速后的直链；找不到返回 null。 */
 export function pickAssetUrl(assets: ReleaseAsset[], platform: DownloadablePlatform): string | null {
@@ -103,12 +115,14 @@ export function isComingSoonPlatform(platform: DownloadPlatform): boolean {
 /**
  * 平台最终拿到的下载目标。返回 null 表示没有可下载的包 —— 按钮置灰显示「即将推出」。
  * 优先用动态拉到的地址，其次 STATIC_DOWNLOADS；两者都没有就是 null。
+ * Linux 例外：不解析直链，直接给安装说明页（见 LINUX_DOWNLOAD_TARGET）。
  */
 export function resolveDownloadTarget(
   platform: DownloadPlatform,
   dynamicUrls: Partial<Record<DownloadablePlatform, string>> = {},
 ): DownloadTarget | null {
   if (isComingSoonPlatform(platform)) return null;
+  if (platform === "linux") return LINUX_DOWNLOAD_TARGET;
 
   const downloadable = platform as DownloadablePlatform;
   const url = dynamicUrls[downloadable] ?? STATIC_DOWNLOADS[downloadable]?.url;

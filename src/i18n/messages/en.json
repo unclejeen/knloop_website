@@ -29,8 +29,7 @@
       "download": "Download for {platform}",
       "downloadAll": "Other platforms",
       "comingSoon": "Coming soon",
-      "installHint": "More versions",
-      "installHintLinux": "Several Linux packages — pick yours in the install guide"
+      "installHint": "More versions"
     },
     "flow": [
       {

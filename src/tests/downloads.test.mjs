@@ -5,6 +5,7 @@ import {
   DEFAULT_DOWNLOAD,
   DOWNLOADABLE_PLATFORMS,
   GH_PROXY,
+  LINUX_DOWNLOAD_TARGET,
   RELEASES_API_URL,
   detectPlatform,
   fetchLatestDownloadUrls,
@@ -158,15 +159,22 @@ describe("download targets", () => {
     assert.equal(resolveDownloadTarget("ios", { windows: WINDOWS_URL }), null);
   });
 
-  it("keeps Android / Linux disabled until the release has their assets", () => {
+  it("keeps Android disabled until the release has its asset", () => {
     assert.equal(resolveDownloadTarget("android", {}), null);
-    assert.equal(resolveDownloadTarget("linux", {}), null);
+  });
+
+  it("sends Linux to the install guide so users pick their own package", () => {
+    const appimage = `${GH_PROXY}/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-871/knloop_0.1.0-871_linux-amd64.AppImage`;
+    // 不管拉没拉到 release，Linux 都不给直链——AppImage 只是其中一个发行包
+    assert.deepEqual(resolveDownloadTarget("linux", {}), LINUX_DOWNLOAD_TARGET);
+    assert.deepEqual(resolveDownloadTarget("linux", { linux: appimage }), LINUX_DOWNLOAD_TARGET);
+    assert.equal(LINUX_DOWNLOAD_TARGET.label, "Linux");
+    assert.equal(LINUX_DOWNLOAD_TARGET.url, "/install");
   });
 
   it("uses the latest release url when available", () => {
     const apk = `${GH_PROXY}/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-770/knloop_0.1.0-770_universal.apk`;
     assert.deepEqual(resolveDownloadTarget("android", { android: apk }), { label: "Android", url: apk });
-    assert.deepEqual(resolveDownloadTarget("linux", { linux: apk }), { label: "Linux", url: apk });
   });
 
   it("falls back to the static Windows installer when fetching fails", () => {
