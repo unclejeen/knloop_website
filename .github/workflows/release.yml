@@ -374,10 +374,16 @@ jobs:
           TAG="${{ needs.version.outputs.tag }}"
           REPO="${{ github.repository }}"
 
-          linux_artifact=$(basename "$(find artifacts/linux-bundles -name '*.AppImage' -print -quit)")
-          windows_setup=$(basename "$(find artifacts/windows-bundles -name '*-setup.exe' -print -quit)")
-          linux_sig=$(cat "artifacts/linux-bundles/$linux_artifact.sig")
-          windows_sig=$(cat "artifacts/windows-bundles/$windows_setup.sig")
+          # download-artifact recreates the layout upload-artifact stored, so the files
+          # sit under <artifact>/<dir>/. Read the signature next to the file find
+          # returned; joining the basename with the artifact root does not exist
+          # (that is what broke run 5's publish job).
+          linux_path=$(find artifacts/linux-bundles -name '*.AppImage' -print -quit)
+          windows_path=$(find artifacts/windows-bundles -name '*-setup.exe' -print -quit)
+          linux_artifact=$(basename "$linux_path")
+          windows_setup=$(basename "$windows_path")
+          linux_sig=$(cat "$linux_path.sig")
+          windows_sig=$(cat "$windows_path.sig")
 
           VERSION="$VERSION" REPO="$REPO" TAG="$TAG" \
           LINUX_URL="https://github.com/$REPO/releases/download/$TAG/$linux_artifact" \
@@ -411,16 +417,14 @@ jobs:
           set -euo pipefail
           VERSION="${{ needs.version.outputs.version }}"
           TAG="${{ needs.version.outputs.tag }}"
-          shopt -s nullglob
-          assets=(
-            artifacts/linux-bundles/*.deb artifacts/linux-bundles/*.deb.sig
-            artifacts/linux-bundles/*.rpm
-            artifacts/linux-bundles/*.AppImage artifacts/linux-bundles/*.AppImage.sig
-            artifacts/linux-bundles/*.AppImage.tar.gz artifacts/linux-bundles/*.AppImage.tar.gz.sig
-            artifacts/windows-bundles/*.exe artifacts/windows-bundles/*.exe.sig
-            artifacts/android-apk/*.apk
-            latest.json
-          )
+          # Recursive on purpose: flat globs matched nothing against the nested
+          # download layout, so the release would have shipped without installers.
+          mapfile -t assets < <(find artifacts -type f \
+            \( -name '*.deb' -o -name '*.deb.sig' -o -name '*.rpm' -o -name '*.rpm.sig' \
+               -o -name '*.AppImage' -o -name '*.AppImage.sig' \
+               -o -name '*.exe' -o -name '*.exe.sig' -o -name '*.apk' \) | sort)
+          assets+=(latest.json)
+          printf '%s\n' "${assets[@]}"
           # Notes stay generic: this repository is public, knloop's commit subjects are not.
           if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             gh release upload "$TAG" --repo "${{ github.repository }}" --clobber "${assets[@]}"
