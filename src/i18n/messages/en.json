@@ -29,6 +29,7 @@
       "download": "Download for {platform}",
       "downloadAll": "Other platforms",
       "comingSoon": "Coming soon",
+      "connecting": "Connecting…",
       "installHint": "More versions"
     },
     "flow": [

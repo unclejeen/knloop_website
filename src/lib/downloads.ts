@@ -14,18 +14,45 @@
 /** 发行包所在仓库：https://github.com/unclejeen/knloop_website/releases */
 export const GITHUB_REPO = "unclejeen/knloop_website";
 
-/** gh-proxy 加速前缀，见 https://gh-proxy.com/docs/github-accelerator */
-export const GH_PROXY = "https://gh-proxy.org";
+/**
+ * gh-proxy 的加速线路，第一条是主线路，其余按顺序当回退。
+ * 单条线路偶发 504（尤其缓存 MISS 时），换一条往往立刻就好；这几条落在不同 CDN 上
+ * （cdn. 是 Fastly，其余是 Cloudflare），所以是互补的入口，不是同一个后端的别名。
+ * 只用 .org 这一族：.com 的子域名只是 301/302 跳回 .org（而且 Location 少了斜杠），不能用。
+ */
+export const GH_PROXIES = [
+  "https://gh-proxy.org",
+  "https://v4.gh-proxy.org",
+  "https://v6.gh-proxy.org",
+  "https://cdn.gh-proxy.org",
+];
 
-/** 最新 release 的 API（经加速），返回 { tag_name, assets: [{ name, browser_download_url }] } */
-export const RELEASES_API_URL = `${GH_PROXY}/https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+/** 主线路：拼静态链接、安装说明文档用它。 */
+export const GH_PROXY = GH_PROXIES[0];
+
+/** 最新 release 的 API 原址。 */
+export const RELEASES_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
+
+/** 最新 release 的 API（经主线路加速），返回 { tag_name, assets: [{ name, browser_download_url }] } */
+export const RELEASES_API_URL = `${GH_PROXY}/${RELEASES_API}`;
 
 /** 最新 release 的网页版；地址永远指向最新版本，安装说明页用它当链接。 */
 export const RELEASES_PAGE_URL = `${GH_PROXY}/https://github.com/${GITHUB_REPO}/releases/latest`;
 
-/** 给 GitHub 地址套上加速前缀。 */
-export function proxyUrl(url: string): string {
-  return `${GH_PROXY}/${url}`;
+/** 给 GitHub 地址套上加速前缀；proxy 默认主线路。 */
+export function proxyUrl(url: string, proxy: string = GH_PROXY): string {
+  return `${proxy}/${url}`;
+}
+
+/** 同一个 GitHub 地址在每条线路上的候选链接，按 GH_PROXIES 顺序。 */
+export function mirrorUrls(url: string): string[] {
+  return GH_PROXIES.map((proxy) => proxyUrl(url, proxy));
+}
+
+/** 把加速链接还原成 GitHub 原址；本来就不是加速链接（比如 /install）就原样返回。 */
+export function unproxyUrl(url: string): string {
+  const proxy = GH_PROXIES.find((candidate) => url.startsWith(`${candidate}/`));
+  return proxy ? url.slice(proxy.length + 1) : url;
 }
 
 export type DownloadPlatform = "windows" | "macos" | "linux" | "android" | "ios";
@@ -98,11 +125,18 @@ export const LINUX_DOWNLOAD_TARGET: DownloadTarget = {
   url: DEFAULT_DOWNLOAD.url,
 };
 
-/** 在 release 资产里按 ASSET_PATTERNS 找平台对应的安装包，返回加速后的直链；找不到返回 null。 */
-export function pickAssetUrl(assets: ReleaseAsset[], platform: DownloadablePlatform): string | null {
+/**
+ * 在 release 资产里按 ASSET_PATTERNS 找平台对应的安装包，返回加速后的直链；找不到返回 null。
+ * proxy 默认主线路；API 是经哪条线路拿到 release 的，资产链接就跟着用哪条。
+ */
+export function pickAssetUrl(
+  assets: ReleaseAsset[],
+  platform: DownloadablePlatform,
+  proxy: string = GH_PROXY,
+): string | null {
   for (const pattern of ASSET_PATTERNS[platform]) {
     const hit = assets.find((asset) => pattern.test(asset.name));
-    if (hit) return proxyUrl(hit.browser_download_url);
+    if (hit) return proxyUrl(hit.browser_download_url, proxy);
   }
   return null;
 }
@@ -148,7 +182,37 @@ export type StorageLike = {
 export type FetchLatestOptions = {
   fetchImpl?: typeof fetch;
   storage?: StorageLike;
+  /** 单条线路的超时；测试用。 */
+  timeoutMs?: number;
 };
+
+/** 单条线路的超时：慢到这个程度基本就是挂了，直接换下一条。 */
+const MIRROR_TIMEOUT_MS = 8000;
+
+/**
+ * 依次尝试每条加速线路，返回第一个 2xx 的响应和它用的线路。
+ * 504 / 超时 / 网络错误都换下一条——用户遇到的正是单条线路偶发 504。
+ */
+async function fetchFromMirrors(
+  rawUrl: string,
+  options: { fetchImpl?: typeof fetch; timeoutMs?: number } = {},
+): Promise<{ response: Response; proxy: string }> {
+  const { fetchImpl = fetch, timeoutMs = MIRROR_TIMEOUT_MS } = options;
+  let lastError: unknown = new Error(`没有可用的加速线路：${rawUrl}`);
+
+  for (const proxy of GH_PROXIES) {
+    const url = proxyUrl(rawUrl, proxy);
+    try {
+      // 不带自定义请求头，避免触发 CORS 预检；GitHub 默认就回 JSON。
+      const response = await fetchImpl(url, { signal: AbortSignal.timeout(timeoutMs) });
+      if (response.ok) return { response, proxy };
+      lastError = new Error(`GitHub release API ${response.status}：${url}`);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
 
 /** 取浏览器 localStorage；SSR 或存储被禁用时返回 undefined。 */
 function defaultStorage(): StorageLike | undefined {
@@ -186,21 +250,20 @@ function writeCache(storage: StorageLike | undefined, urls: LatestDownloads): vo
 }
 
 async function requestLatestDownloadUrls(options: FetchLatestOptions): Promise<LatestDownloads> {
-  const { fetchImpl = fetch, storage = defaultStorage() } = options;
+  const { fetchImpl = fetch, storage = defaultStorage(), timeoutMs } = options;
 
   const cached = readCache(storage);
   if (cached) return cached;
 
-  // 不带自定义请求头，避免触发 CORS 预检；GitHub 默认就回 JSON。
-  const response = await fetchImpl(RELEASES_API_URL);
-  if (!response.ok) throw new Error(`GitHub release API ${response.status}`);
+  const { response, proxy } = await fetchFromMirrors(RELEASES_API, { fetchImpl, timeoutMs });
 
   const release = (await response.json()) as { assets?: ReleaseAsset[] };
   const assets = Array.isArray(release?.assets) ? release.assets : [];
 
   const urls: LatestDownloads = {};
   for (const platform of DOWNLOADABLE_PLATFORMS) {
-    const url = pickAssetUrl(assets, platform);
+    // 资产链接跟着 API 一起用那条通了的线路
+    const url = pickAssetUrl(assets, platform, proxy);
     if (url) urls[platform] = url;
   }
 
@@ -223,6 +286,73 @@ export function fetchLatestDownloadUrls(options: FetchLatestOptions = {}): Promi
     inflight = null;
   });
   return inflight;
+}
+
+/**
+ * 点下载时每条线路最多等这么久，超时就当这条不通、换下一条。
+ * 别调太小：这些线路冷启动时 HEAD 要 1–2s（实测 v6 最慢到 2.0s），太短会把能用的线路也跳掉。
+ */
+const PROBE_TIMEOUT_MS = 2000;
+
+export type PickReachableOptions = {
+  fetchImpl?: typeof fetch;
+  timeoutMs?: number;
+  /** 每次都重新测（点下载用），不吃上一次探测的结论。 */
+  fresh?: boolean;
+};
+
+/** 探过的结果记下来：同一页面里首屏 + CTA 两个按钮只探一次。 */
+const reachableCache = new Map<string, Promise<string>>();
+
+/**
+ * 一条线路上的资产真的能下吗？HEAD 一次，2xx 算通。
+ * 全都不通就返回原链接——探测失败不该让用户反而点不动。
+ */
+async function probeMirrors(url: string, raw: string, options: PickReachableOptions): Promise<string> {
+  const { fetchImpl = fetch, timeoutMs = PROBE_TIMEOUT_MS } = options;
+  // 先用链接里现成的那条线路，再依次试其余线路
+  const candidates = [url, ...mirrorUrls(raw).filter((candidate) => candidate !== url)];
+
+  for (const candidate of candidates) {
+    try {
+      const response = await fetchImpl(candidate, {
+        method: "HEAD",
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (response.ok) return candidate;
+    } catch {
+      // 探测本身失败就当这条线路不可用，继续试下一条
+    }
+  }
+  return url;
+}
+
+/** 这个链接是不是走加速线路的；站内链接（比如安装说明页 /install）不是。 */
+export function isAcceleratedUrl(url: string): boolean {
+  return unproxyUrl(url) !== url;
+}
+
+/**
+ * 从候选线路里挑一条真的能用的资产链接。
+ *
+ * gh-proxy 单条线路偶发 504，而按钮一旦跳到 504 的地址，用户只能自己重试，所以点下载时
+ * 现测一次（传 fresh，见 download-button 的 handleDownload）：第一个 2xx 的线路才算数。
+ * 不是加速链接（比如安装说明页 /install）就原样返回，不探测。
+ * 传了 fetchImpl / timeoutMs（测试用）时不共用缓存。
+ */
+export function pickReachableDownloadUrl(url: string, options: PickReachableOptions = {}): Promise<string> {
+  const raw = unproxyUrl(url);
+  if (raw === url) return Promise.resolve(url);
+
+  // 以「当前这条链接」为键：换了线路（比如 API 回退到 v4）要重新探，别沿用上一轮的结论。
+  // fresh 用于「每次点击都测」：当次绕过缓存，重新发 HEAD。
+  const cacheable = !options.fresh && !options.fetchImpl && !options.timeoutMs;
+  const cached = cacheable ? reachableCache.get(url) : undefined;
+  if (cached) return cached;
+
+  const task = probeMirrors(url, raw, options);
+  if (cacheable) reachableCache.set(url, task);
+  return task;
 }
 
 /** 从 UA 认平台；认不出来返回 null，交给调用方兜底。 */

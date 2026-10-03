@@ -29,6 +29,7 @@
       "download": "{platform} 版下载",
       "downloadAll": "其它平台下载",
       "comingSoon": "即将推出",
+      "connecting": "正在连接…",
       "installHint": "更多版本"
     },
     "flow": [

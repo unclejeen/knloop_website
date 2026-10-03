@@ -94,6 +94,7 @@ describe("install.md download links", () => {
     assert.ok(!block.includes("本段由"), "页头不该再提脚本自动生成");
     assert.ok(!block.includes("请勿手改"), "页头不该再提请勿手改");
     assert.match(block, /### macOS \/ iOS\n\n即将推出。/, "macOS / iOS 只写即将推出");
+    assert.ok(block.includes("cdn.gh-proxy.org"), "页头要给出备用加速线路");
   });
 
   it("lists the linux packages a button cannot choose between", () => {

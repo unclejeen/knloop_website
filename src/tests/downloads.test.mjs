@@ -4,14 +4,19 @@ import { describe, it } from "node:test";
 import {
   DEFAULT_DOWNLOAD,
   DOWNLOADABLE_PLATFORMS,
+  GH_PROXIES,
   GH_PROXY,
   LINUX_DOWNLOAD_TARGET,
   RELEASES_API_URL,
   detectPlatform,
   fetchLatestDownloadUrls,
+  isAcceleratedUrl,
+  mirrorUrls,
   pickAssetUrl,
+  pickReachableDownloadUrl,
   proxyUrl,
   resolveDownloadTarget,
+  unproxyUrl,
 } from "../lib/downloads.ts";
 
 const UA = {
@@ -61,7 +66,10 @@ const RELEASE_770 = [
   asset("latest.json"),
 ];
 
-const WINDOWS_URL = `${GH_PROXY}/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-770/knloop_0.1.0-770_x64-setup.exe`;
+const RAW_WINDOWS =
+  "https://github.com/unclejeen/knloop_website/releases/download/0.1.0-770/knloop_0.1.0-770_x64-setup.exe";
+
+const WINDOWS_URL = `${GH_PROXY}/${RAW_WINDOWS}`;
 
 function fakeStorage() {
   const map = new Map();
@@ -230,5 +238,99 @@ describe("latest release lookup", () => {
         fetchImpl: async () => ({ ok: false, status: 403 }),
       }),
     );
+  });
+});
+
+describe("accelerator mirrors", () => {
+  it("keeps the documented lines in fallback order, primary first", () => {
+    assert.equal(GH_PROXY, GH_PROXIES[0]);
+    assert.deepEqual(GH_PROXIES, [
+      "https://gh-proxy.org",
+      "https://v4.gh-proxy.org",
+      "https://v6.gh-proxy.org",
+      "https://cdn.gh-proxy.org",
+    ]);
+  });
+
+  it("builds the same asset on every line", () => {
+    assert.deepEqual(
+      mirrorUrls(RAW_WINDOWS),
+      GH_PROXIES.map((proxy) => `${proxy}/${RAW_WINDOWS}`),
+    );
+  });
+
+  it("round-trips an accelerated url back to github", () => {
+    for (const proxy of GH_PROXIES) {
+      assert.equal(unproxyUrl(`${proxy}/${RAW_WINDOWS}`), RAW_WINDOWS);
+    }
+    assert.equal(unproxyUrl("/install"), "/install");
+  });
+
+  it("falls through to the next line when one returns 504", async () => {
+    const calls = [];
+    const urls = await fetchLatestDownloadUrls({
+      storage: fakeStorage(),
+      fetchImpl: async (url) => {
+        calls.push(String(url));
+        return calls.length === 1 ? { ok: false, status: 504 } : releaseResponse(RELEASE_770);
+      },
+    });
+
+    assert.equal(calls.length, 2);
+    assert.ok(calls[0].startsWith(`${GH_PROXIES[0]}/`));
+    assert.ok(calls[1].startsWith(`${GH_PROXIES[1]}/`));
+    // 资产链接跟着 API 一起用通了的那条线路
+    assert.equal(urls.windows, `${GH_PROXIES[1]}/${RAW_WINDOWS}`);
+  });
+
+  it("throws only after every line has failed", async () => {
+    const calls = [];
+    await assert.rejects(
+      fetchLatestDownloadUrls({
+        storage: fakeStorage(),
+        fetchImpl: async (url) => {
+          calls.push(String(url));
+          return { ok: false, status: 502 };
+        },
+      }),
+    );
+    assert.equal(calls.length, GH_PROXIES.length);
+  });
+
+  it("picks the first line whose asset answers a HEAD", async () => {
+    const assetUrl = `${GH_PROXY}/${RAW_WINDOWS}`;
+    const tried = [];
+    const picked = await pickReachableDownloadUrl(assetUrl, {
+      fetchImpl: async (url, init) => {
+        tried.push([String(url), init?.method]);
+        return String(url).startsWith(`${GH_PROXIES[1]}/`) ? { ok: true } : { ok: false, status: 504 };
+      },
+    });
+
+    assert.equal(picked, `${GH_PROXIES[1]}/${RAW_WINDOWS}`);
+    assert.deepEqual(tried[0], [assetUrl, "HEAD"]);
+    assert.equal(tried.length, 2);
+  });
+
+  it("keeps the original link when nothing answers", async () => {
+    const assetUrl = `${GH_PROXY}/${RAW_WINDOWS}`;
+    const picked = await pickReachableDownloadUrl(assetUrl, {
+      fetchImpl: async () => {
+        throw new Error("network down");
+      },
+    });
+    assert.equal(picked, assetUrl);
+  });
+
+  it("leaves links that are not accelerated alone", async () => {
+    assert.equal(await pickReachableDownloadUrl("/install"), "/install");
+    assert.equal(isAcceleratedUrl("/install"), false);
+  });
+
+  it("tells accelerated links apart from site links", () => {
+    for (const proxy of GH_PROXIES) {
+      assert.equal(isAcceleratedUrl(`${proxy}/${RAW_WINDOWS}`), true);
+    }
+    assert.equal(isAcceleratedUrl("https://github.com/a/b/releases/download/1/x.exe"), false);
   });
 });

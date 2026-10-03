@@ -4,6 +4,8 @@
 
 > 当前版本 **0.1.0-871**，下列链接走 gh-proxy 加速服务，您也可以直接在 [releases](https://github.com/unclejeen/knloop_website/releases) 页面下载。
 
+> 线路偶尔会 504，稍等重试即可；一直失败就把链接里的 `gh-proxy.org` 换成 `v4.gh-proxy.org` / `v6.gh-proxy.org` / `cdn.gh-proxy.org`。
+
 ### Windows
 
 - [knloop_0.1.0-871_windows-x64-setup.exe](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-871/knloop_0.1.0-871_windows-x64-setup.exe)
