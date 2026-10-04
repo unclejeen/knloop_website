@@ -94,7 +94,21 @@ describe("install.md download links", () => {
     assert.ok(!block.includes("本段由"), "页头不该再提脚本自动生成");
     assert.ok(!block.includes("请勿手改"), "页头不该再提请勿手改");
     assert.match(block, /### macOS \/ iOS\n\n即将推出。/, "macOS / iOS 只写即将推出");
-    assert.ok(block.includes("cdn.gh-proxy.org"), "页头要给出备用加速线路");
+    // 回退由站点自己处理（点链接时先测线路，见 src/components/mirror-link.tsx）：
+    // 页头不该教用户换域名，也不该出现 504 这种要用户自己解决的字眼。
+    assert.ok(!block.includes("504"), "页头不该提 504");
+    assert.ok(!block.includes("换成"), "页头不该让用户自己换加速线路");
+    assert.ok(!/\b(?:v4|v6|cdn)\.gh-proxy\.org/.test(block), "备用线路域名不该写进文档让用户手动换");
+    assert.ok(block.includes("回退 GitHub"), "页头要说明兜底是 GitHub");
+  });
+
+  it("never asks the reader to work around a failing mirror", () => {
+    for (const sample of [release(), { tag_name: "0.1.0-1", assets: [] }]) {
+      const block = renderInstallBlock(sample);
+      assert.ok(!block.includes("504"), "文档不该出现 504");
+      assert.ok(!block.includes("重试"), "文档不该让用户自己重试");
+      assert.ok(!block.includes("换成"), "文档不该让用户自己换线路");
+    }
   });
 
   it("lists the linux packages a button cannot choose between", () => {

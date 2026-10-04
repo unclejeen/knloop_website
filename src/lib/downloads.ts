@@ -306,7 +306,8 @@ const reachableCache = new Map<string, Promise<string>>();
 
 /**
  * 一条线路上的资产真的能下吗？HEAD 一次，2xx 算通。
- * 全都不通就返回原链接——探测失败不该让用户反而点不动。
+ * 一条都不通就返回 GitHub 原址：加速线路全挂了还有 GitHub 兜底，
+ * 不该把用户丢在一张 504 上，更不该让他自己去换域名。
  */
 async function probeMirrors(url: string, raw: string, options: PickReachableOptions): Promise<string> {
   const { fetchImpl = fetch, timeoutMs = PROBE_TIMEOUT_MS } = options;
@@ -324,7 +325,7 @@ async function probeMirrors(url: string, raw: string, options: PickReachableOpti
       // 探测本身失败就当这条线路不可用，继续试下一条
     }
   }
-  return url;
+  return raw;
 }
 
 /** 这个链接是不是走加速线路的；站内链接（比如安装说明页 /install）不是。 */
@@ -335,8 +336,9 @@ export function isAcceleratedUrl(url: string): boolean {
 /**
  * 从候选线路里挑一条真的能用的资产链接。
  *
- * gh-proxy 单条线路偶发 504，而按钮一旦跳到 504 的地址，用户只能自己重试，所以点下载时
- * 现测一次（传 fresh，见 download-button 的 handleDownload）：第一个 2xx 的线路才算数。
+ * gh-proxy 单条线路偶发 504，把用户直接丢到 504 上他只能自己重试，所以点下载、点文档里的
+ * 下载链接之前都先现测一次（传 fresh，见 components/mirror-link.tsx）：第一个 2xx 的线路
+ * 才算数；四条线路都不通就直接回 GitHub 原址兜底。
  * 不是加速链接（比如安装说明页 /install）就原样返回，不探测。
  * 传了 fetchImpl / timeoutMs（测试用）时不共用缓存。
  */

@@ -9,10 +9,9 @@ import {
   PLATFORM_LABELS,
   detectPlatform,
   fetchLatestDownloadUrls,
-  isAcceleratedUrl,
-  pickReachableDownloadUrl,
   resolveDownloadTarget,
 } from "@/lib/downloads";
+import { useMirrorDownload } from "@/components/mirror-link";
 import type { DownloadPlatform, DownloadablePlatform } from "@/lib/downloads";
 import { useHomeMessages } from "@/i18n/locale";
 
@@ -27,7 +26,8 @@ import { useHomeMessages } from "@/i18n/locale";
  * 按钮直接指向安装说明页，让用户按发行版自己选（见 resolveDownloadTarget）。
  *
  * 加速线路（gh-proxy.org / v4. / v6. / cdn.）偶发 504：拉 release 时会按顺序换线路。
- * 点下载时再现场测一次（handleDownload）：挨条 HEAD，第一个 2xx 的线路才触发浏览器下载。
+ * 点下载时再现场测一次（useMirrorDownload）：挨条 HEAD，第一个 2xx 的线路才触发浏览器下载；
+ * 四条线路都不通就直接去 GitHub 原址。用户不需要知道这些，也不需要自己换域名。
  *
  * installHint：按钮下面再挂一条小字链接指向安装说明。Linux 不挂——按钮本身就指向那一页。
  */
@@ -41,7 +41,7 @@ export function DownloadButton({
   const { hero } = useHomeMessages();
   const [platform, setPlatform] = useState<DownloadPlatform | null>(null);
   const [dynamicUrls, setDynamicUrls] = useState<Partial<Record<DownloadablePlatform, string>>>({});
-  const [resolving, setResolving] = useState(false);
+  const { probing, follow } = useMirrorDownload();
 
   useEffect(() => {
     setPlatform(detectPlatform());
@@ -64,7 +64,7 @@ export function DownloadButton({
 
   // 文案是模板：中文「{platform} 版下载」、英文 "Download for {platform}"；
   // 认不出平台时用 downloadAll（其它平台下载 → 安装说明页）；正在测线路时给个反馈
-  const label = resolving
+  const label = probing
     ? hero.connecting
     : platform
       ? hero.download.replace("{platform}", PLATFORM_LABELS[platform])
@@ -99,23 +99,11 @@ export function DownloadButton({
 
   /**
    * 点下载时才测线路：按顺序对每条线路 HEAD 一次，第一个 2xx 的才拿来下载。
-   * 504 / 超时 / 网络错误都跳过换下一条；全都测不通就退回原链接，让浏览器自己去试。
+   * 504 / 超时 / 网络错误都跳过换下一条；四条线路都不通就去 GitHub 原址兜底，
    * 站内链接（安装说明页）没什么可回退的，直接走默认行为。
    */
-  const handleDownload = async (event: MouseEvent<HTMLAnchorElement>) => {
-    if (!isAcceleratedUrl(linkTarget.url)) return;
-    event.preventDefault();
-    if (resolving) return;
-
-    setResolving(true);
-    let url = linkTarget.url;
-    try {
-      url = await pickReachableDownloadUrl(linkTarget.url, { fresh: true });
-    } catch {
-      // 探测本身出错：退回原链接
-    }
-    setResolving(false);
-    window.location.href = url;
+  const handleDownload = (event: MouseEvent<HTMLAnchorElement>) => {
+    void follow(event, linkTarget.url);
   };
 
   return (
@@ -125,7 +113,7 @@ export function DownloadButton({
         variant="primary"
         size="lg"
         aria-label={label}
-        aria-busy={resolving}
+        aria-busy={probing}
         onClick={handleDownload}
       >
         <DownloadIcon className="h-4 w-4 shrink-0" />

@@ -21,7 +21,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-import { GH_PROXIES, GITHUB_REPO, proxyUrl } from "../src/lib/downloads.ts";
+import { GITHUB_REPO, proxyUrl } from "../src/lib/downloads.ts";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -35,13 +35,6 @@ export const BLOCK_END = "<!-- downloads:end -->";
  * 代理网页会 403，所以网页链接交给浏览器直接访问 github.com。
  */
 export const RELEASES_PAGE = `https://github.com/${GITHUB_REPO}/releases`;
-
-/**
- * 加速线路的域名。文档是静态的，没法像首页按钮那样自动换线路（见 downloads.ts 的
- * pickReachableDownloadUrl），只能在页头告诉用户怎么手动换一条。
- */
-const MIRROR_HOSTS = GH_PROXIES.map((base) => new URL(base).host);
-const ALTERNATE_MIRROR_HOSTS = MIRROR_HOSTS.slice(1);
 
 /** 有安装包的平台，按文档里的顺序。 */
 const PLATFORMS = [
@@ -83,16 +76,12 @@ export function renderInstallBlock(release) {
     BLOCK_START,
     "",
     // 网页链接用 GitHub 直链（RELEASES_PAGE）：gh-proxy 只代理 release 资产，代理网页会 403。
-    `> 当前版本 **${tag || "未知"}**，下列链接走 gh-proxy 加速服务，您也可以直接在 [releases](${RELEASES_PAGE}) 页面下载。`,
+    // 用哪条加速线路在点击时决定（见 src/components/mirror-link.tsx）：四条线路挨个试，都不通
+    // 就直接回 GitHub 原址。所以页头只说明会自动回退，不写「自己把域名换成 v4 / v6 / cdn」这种
+    // 把问题推给用户的提示——用户看到 504 就说明我们没兜住。
+    `> 当前版本 **${tag || "未知"}**，下载链接会自动挑一条通的加速线路，都不通就直接回退 GitHub；也可以在 [releases](${RELEASES_PAGE}) 页面下载。`,
     "",
   ];
-
-  if (ALTERNATE_MIRROR_HOSTS.length > 0) {
-    lines.push(
-      `> 线路偶尔会 504，稍等重试即可；一直失败就把链接里的 \`${MIRROR_HOSTS[0]}\` 换成 ${ALTERNATE_MIRROR_HOSTS.map((host) => `\`${host}\``).join(" / ")}。`,
-      "",
-    );
-  }
 
   for (const { heading, pattern } of PLATFORMS) {
     const hits = matchAssets(assets, pattern);

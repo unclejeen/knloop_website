@@ -13,6 +13,7 @@ import { PagerNav } from "@/components/docs-page-chrome";
 import { DocsToc } from "@/components/docs-toc";
 import { CopyCodeButton } from "@/components/copy-button";
 import { HeadingAnchor } from "@/components/heading-anchor";
+import { MirrorLink } from "@/components/mirror-link";
 
 type DocsPageParams = { slug?: string[] };
 type DocsPageProps = { params: Promise<DocsPageParams> };
@@ -56,6 +57,9 @@ const mdxComponents = {
       <pre {...props}>{children}</pre>
     </div>
   ),
+  // 文档里的加速下载链接在点击时自己挑一条通的线路（见 mirror-link），
+  // 所以安装说明不用再教用户手动把 gh-proxy.org 换成 v4 / v6 / cdn。
+  a: MirrorLink,
   h2: makeHeading("h2"),
   h3: makeHeading("h3"),
   h4: makeHeading("h4"),

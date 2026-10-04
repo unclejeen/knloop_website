@@ -312,14 +312,19 @@ describe("accelerator mirrors", () => {
     assert.equal(tried.length, 2);
   });
 
-  it("keeps the original link when nothing answers", async () => {
+  it("falls back to the GitHub url when no line answers", async () => {
     const assetUrl = `${GH_PROXY}/${RAW_WINDOWS}`;
+    const tried = [];
     const picked = await pickReachableDownloadUrl(assetUrl, {
-      fetchImpl: async () => {
+      fetchImpl: async (url) => {
+        tried.push(String(url));
         throw new Error("network down");
       },
     });
-    assert.equal(picked, assetUrl);
+
+    // 四条加速线路全不通也别把用户丢在 504 上：直接去 GitHub 原址兜底
+    assert.equal(picked, RAW_WINDOWS);
+    assert.equal(tried.length, GH_PROXIES.length);
   });
 
   it("leaves links that are not accelerated alone", async () => {
