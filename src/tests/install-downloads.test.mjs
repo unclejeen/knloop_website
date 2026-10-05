@@ -99,7 +99,7 @@ describe("install.md download links", () => {
     assert.ok(!block.includes("504"), "页头不该提 504");
     assert.ok(!block.includes("换成"), "页头不该让用户自己换加速线路");
     assert.ok(!/\b(?:v4|v6|cdn)\.gh-proxy\.org/.test(block), "备用线路域名不该写进文档让用户手动换");
-    assert.ok(block.includes("回退 GitHub"), "页头要说明兜底是 GitHub");
+    assert.ok(block.includes("以下为加速服务代理链接"), "页头要说明链接是加速代理");
   });
 
   it("never asks the reader to work around a failing mirror", () => {

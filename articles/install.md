@@ -2,7 +2,7 @@
 
 <!-- downloads:start -->
 
-> 当前版本 **0.1.0-1073**，下载链接会自动挑一条通的加速线路，都不通就直接回退 GitHub；也可以在 [releases](https://github.com/unclejeen/knloop_website/releases) 页面下载。
+> 当前版本 **0.1.0-1073**，以下为加速服务代理链接，您也可以在 [releases](https://github.com/unclejeen/knloop_website/releases) 页面直接下载。
 
 ### Windows
 

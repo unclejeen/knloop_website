@@ -79,7 +79,7 @@ export function renderInstallBlock(release) {
     // 用哪条加速线路在点击时决定（见 src/components/mirror-link.tsx）：四条线路挨个试，都不通
     // 就直接回 GitHub 原址。所以页头只说明会自动回退，不写「自己把域名换成 v4 / v6 / cdn」这种
     // 把问题推给用户的提示——用户看到 504 就说明我们没兜住。
-    `> 当前版本 **${tag || "未知"}**，下载链接会自动挑一条通的加速线路，都不通就直接回退 GitHub；也可以在 [releases](${RELEASES_PAGE}) 页面下载。`,
+    `> 当前版本 **${tag || "未知"}**，以下为加速服务代理链接，您也可以在 [releases](${RELEASES_PAGE}) 页面直接下载。`,
     "",
   ];
 
