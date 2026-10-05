@@ -380,11 +380,41 @@ jobs:
           retention-days: 1
           path: src-tauri/gen/android/app/build/outputs/apk/*/release/knloop_*.apk
 
+  # ── the starter vault template: Quick_Start.zip rides with every release ──────
+  # The phone cannot clone (Android has no `git` binary), so it downloads this asset:
+  # knloop's GETTING_STARTED_ARCHIVE_URL points at
+  #   https://github.com/unclejeen/knloop_website/releases/latest/download/Quick_Start.zip
+  # [knloop ADR-0263]. The file name is a contract with that constant — renaming it on
+  # one side only strands the phone entry in "template download failed".
+  # `--prefix=Quick_Start/` gives the archive the single top-level directory the
+  # importer collapses, which is the shape GitHub's own repository archive has.
+  build-template:
+    name: Package the Quick_Start template
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Public repository: the default token reads it, no secret needed.
+          repository: unclejeen/Quick_Start
+          path: Quick_Start
+          fetch-depth: 1
+      - name: Zip the template
+        run: |
+          set -euo pipefail
+          git -C Quick_Start archive --format=zip --prefix=Quick_Start/ -o "$PWD/Quick_Start.zip" HEAD
+          unzip -l Quick_Start.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: template-zip
+          if-no-files-found: error
+          retention-days: 1
+          path: Quick_Start.zip
+
   # ── one release: every asset + a manifest that lists every platform ────────────
   release:
     name: Publish the release
-    needs: [version, build-linux, build-windows, build-android]
-    if: ${{ always() && needs.version.result == 'success' && needs.build-linux.result == 'success' && needs.build-windows.result == 'success' && (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') }}
+    needs: [version, build-linux, build-windows, build-android, build-template]
+    if: ${{ always() && needs.version.result == 'success' && needs.build-linux.result == 'success' && needs.build-windows.result == 'success' && (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') && needs.build-template.result == 'success' }}
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/download-artifact@v4
@@ -452,7 +482,8 @@ jobs:
           mapfile -t assets < <(find artifacts -type f \
             \( -name '*.deb' -o -name '*.deb.sig' -o -name '*.rpm' -o -name '*.rpm.sig' \
                -o -name '*.AppImage' -o -name '*.AppImage.sig' \
-               -o -name '*.exe' -o -name '*.exe.sig' -o -name '*.apk' \) | sort)
+               -o -name '*.exe' -o -name '*.exe.sig' -o -name '*.apk' \
+               -o -name 'Quick_Start.zip' \) | sort)
           assets+=(latest.json)
           printf '%s\n' "${assets[@]}"
           # Notes stay generic: this repository is public, knloop's commit subjects are not.
