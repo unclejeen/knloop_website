@@ -1,0 +1,35 @@
+name: probe-xcode (temporary)
+
+# Temporary diagnostic: locate the Swift compatibility libraries that Xcode 26.6 on the
+# macOS runners fails to link, so the real test-build workflow can be fixed with evidence
+# instead of guesses. Delete this file once the answer is known.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: macos-26
+    steps:
+      - name: Locate the toolchains and the Swift compatibility libraries
+        run: |
+          set -x
+          xcodebuild -version
+          xcode-select -p
+          echo "TOOLCHAINS=${TOOLCHAINS:-unset}"
+          echo "--- installed Xcodes ---"
+          ls /Applications | grep -i xcode || true
+          echo "--- XcodeDefault toolchain swift/iphoneos ---"
+          ls "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos" 2>&1 | head -40
+          echo "--- every libswiftCompatibility56 in /Applications/Xcode* ---"
+          find /Applications/Xcode.app /Applications/Xcode_26.6.app -name "libswiftCompatibility56*" 2>/dev/null | head
+          echo "--- every libswiftCompatibility56 anywhere under /var/run cryptex ---"
+          find /var/run/com.apple.security.cryptexd -name "libswiftCompatibility56*" 2>/dev/null | head
+          echo "--- with TOOLCHAINS forced ---"
+          TOOLCHAINS=com.apple.dt.toolchain.XcodeDefault xcodebuild -version
+          echo "--- download components available? ---"
+          xcodebuild -downloadComponent MetalToolchain -exportPath /tmp/x 2>&1 | head -5 || true
+        shell: bash
