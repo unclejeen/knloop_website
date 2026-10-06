@@ -190,7 +190,12 @@ jobs:
     name: Build (ios-arm64, unsigned .ipa)
     needs: version
     if: ${{ inputs.ios }}
-    runs-on: macos-14
+    # Xcode 26, not macos-14: knloop.xcodeproj/project.pbxproj carries objectVersion = 77
+    # (Xcode 26 project format), and the Xcode 15 that macos-14 defaults to refuses it with
+    #   "cannot be opened because it is in a future Xcode project file format (77)"
+    # (observed on run 37506672643). macos-26-arm64 defaults to Xcode 26.6. The macOS job
+    # above stays on macos-14 because tauri build never opens this project.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
         with:
@@ -235,6 +240,11 @@ jobs:
         # pnpm build fills build.frontendDist. Desktop tauri build does not need this
         # because it runs beforeBuildCommand before it touches the bundler.
         run: pnpm build && pnpm bundle-mcp
+
+      - name: Show the Xcode that will build this
+        run: |
+          xcodebuild -version
+          xcode-select -p
 
       - name: Build the unsigned .ipa
         env:
