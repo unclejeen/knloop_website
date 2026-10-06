@@ -226,6 +226,16 @@ jobs:
           sed -i '' "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml
           grep -m1 '^version' src-tauri/Cargo.toml
 
+      - name: Build the frontend and the MCP bundle first
+        # tauri ios build builds the AppInterface - which resolves bundle.resources -
+        # BEFORE it runs build.beforeBuildCommand, so resources/mcp-server has to exist
+        # already or the command dies with
+        #   "failed to get resource: resource path 'resources/mcp-server' doesn't exist"
+        # (observed on run 37505603236). pnpm bundle-mcp is what creates that directory;
+        # pnpm build fills build.frontendDist. Desktop tauri build does not need this
+        # because it runs beforeBuildCommand before it touches the bundler.
+        run: pnpm build && pnpm bundle-mcp
+
       - name: Build the unsigned .ipa
         env:
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
