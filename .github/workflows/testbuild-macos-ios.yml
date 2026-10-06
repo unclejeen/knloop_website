@@ -1,0 +1,285 @@
+name: Test builds (macOS ad-hoc + iOS unsigned)
+
+# Owner-only test builds: put knloop on your own Mac and your own iPhone without an
+# Apple Developer certificate. This lane never publishes a release, never writes
+# latest.json and never touches the updater - release.yml is the real release.
+#
+# Why this repository and not unclejeen/knloop: that repository asserts it declares no
+# release packaging and no CI (scripts/release-packaging-scope.test.mjs, ADR-0251) and
+# fails its own guard suite if a workflow there mentions "macos-". Packaging for every
+# platform lives here [knloop ADR-0103]; being a public repository is also why the
+# macOS runners below cost no minutes.
+#
+# macOS: tauri build --no-sign for the .app, then an ad-hoc signature (codesign -s -)
+#        and a hand-made .dmg. An ad-hoc signature is what "temporary signing" means
+#        without a certificate: the bundle is internally consistent, but Gatekeeper
+#        still refuses the first launch until the quarantine flag is removed.
+# iOS:   tauri ios build --no-sign produces a genuine UNSIGNED .ipa (tauri-cli 2.11.4
+#        takes the no_sign branch and zips Payload/ itself). A free Apple ID cannot
+#        sign from CI - there is no App Store Connect API key, and Xcode free
+#        provisioning needs an interactive 2FA login - so signing happens on the
+#        owner's machine (Sideloadly / AltStore / Xcode) and expires after 7 days.
+#
+# Required secret: KNLOOP_READ_TOKEN (already set; release.yml uses it too).
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: knloop ref to build (branch, tag or commit SHA)
+        required: false
+        default: main
+      macos:
+        description: Build the macOS test build (ad-hoc signed .dmg)
+        type: boolean
+        required: false
+        default: true
+      ios:
+        description: Build the unsigned iOS .ipa
+        type: boolean
+        required: false
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testbuild-${{ inputs.ref || 'main' }}
+  cancel-in-progress: false
+
+env:
+  SOURCE_REPOSITORY: unclejeen/knloop
+  SOURCE_REF: ${{ inputs.ref || 'main' }}
+  NODE_OPTIONS: --max-old-space-size=4096
+
+jobs:
+  # one version for both platforms, so every artifact name is unique
+  version:
+    name: Compute the build version
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.ci.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.KNLOOP_READ_TOKEN }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Derive version from the package version and the commit count
+        id: ci
+        run: node scripts/release-version.mjs ci github | tee -a "$GITHUB_OUTPUT"
+
+  # macOS arm64: unsigned build, ad-hoc signature, hand-made .dmg
+  macos:
+    name: Build (macos-arm64, ad-hoc signed)
+    needs: version
+    if: ${{ inputs.macos }}
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.KNLOOP_READ_TOKEN }}
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: "pnpm" }
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        with: { targets: aarch64-apple-darwin }
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-testbuild-cargo-aarch64-apple-darwin-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-testbuild-cargo-aarch64-apple-darwin-
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Clear cached bundle artifacts
+        # The Rust target dir is cached, so a previous run bundle/ would otherwise be
+        # picked up and shipped next to this run .app.
+        run: rm -rf src-tauri/target/release/bundle
+
+      - name: Set version
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.version.outputs.version }}"
+          jq --arg v "$VERSION" '.version = $v' src-tauri/tauri.conf.json > tmp.json && mv tmp.json src-tauri/tauri.conf.json
+          sed -i '' "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml
+          grep -m1 '^version' src-tauri/Cargo.toml
+
+      - name: Build the app bundle (no Apple signing)
+        env:
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_SENTRY_RELEASE: ${{ needs.version.outputs.version }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
+        # createUpdaterArtifacts is off: a test build carries no updater signature, and
+        # leaving it on would demand TAURI_SIGNING_PRIVATE_KEY for an artifact we drop.
+        run: |
+          set -euo pipefail
+          pnpm tauri build --bundles app --no-sign \
+            --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Ad-hoc sign the app
+        run: |
+          set -euo pipefail
+          APP="src-tauri/target/release/bundle/macos/knloop.app"
+          test -d "$APP" || { echo "::error::no app bundle at $APP"; exit 1; }
+          # codesign -s - is the ad-hoc/temporary signature: no certificate, but the
+          # bundle is signed enough for macOS to load it and verify its own code. It is
+          # NOT a Developer ID, so Gatekeeper still blocks the first launch of a
+          # quarantined download.
+          codesign --force --deep --sign - "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          echo "--- what actually got signed ---"
+          codesign -dv --verbose=4 "$APP" 2>&1 | sed -n "1,14p"
+
+      - name: Wrap the signed app in a .dmg
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.version.outputs.version }}"
+          APP="src-tauri/target/release/bundle/macos/knloop.app"
+          STAGE="$(mktemp -d)"
+          cp -R "$APP" "$STAGE/knloop.app"
+          ln -s /Applications "$STAGE/Applications"
+          DMG="knloop_${VERSION}_macos-arm64.dmg"
+          hdiutil create -volname "knloop $VERSION" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
+          # A zip of the signed .app is often quicker than mounting the dmg; ditto keeps
+          # the signature, the extended attributes and the symlinks intact.
+          ZIP="knloop_${VERSION}_macos-arm64.app.zip"
+          ditto -c -k --keepParent "$APP" "$ZIP"
+          shasum -a 256 "$DMG" "$ZIP" > SHA256SUMS-macos.txt
+          cat SHA256SUMS-macos.txt
+          ls -lh "$DMG" "$ZIP"
+
+      - name: Summary
+        run: |
+          {
+            echo "### macOS test build (ad-hoc signed, no developer certificate)"
+            echo
+            echo "Download knloop_${{ needs.version.outputs.version }}_macos-arm64.dmg and drag it into Applications."
+            echo "The first launch is refused by Gatekeeper because there is no Developer ID; run this once:"
+            echo
+            echo "    xattr -dr com.apple.quarantine /Applications/knloop.app"
+            echo
+            echo "Then open it normally. Repeat for the next build."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-testbuild
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            knloop_*_macos-arm64.dmg
+            knloop_*_macos-arm64.app.zip
+            SHA256SUMS-macos.txt
+
+  # iOS arm64: an UNSIGNED .ipa, signed later on the owner machine
+  ios:
+    name: Build (ios-arm64, unsigned .ipa)
+    needs: version
+    if: ${{ inputs.ios }}
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.KNLOOP_READ_TOKEN }}
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22", cache: "pnpm" }
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        with: { targets: aarch64-apple-ios }
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-testbuild-cargo-aarch64-apple-ios-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-testbuild-cargo-aarch64-apple-ios-
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Clear cached iOS build output
+        run: rm -rf src-tauri/gen/apple/build
+
+      - name: Set version
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.version.outputs.version }}"
+          jq --arg v "$VERSION" '.version = $v' src-tauri/tauri.conf.json > tmp.json && mv tmp.json src-tauri/tauri.conf.json
+          sed -i '' "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml
+          grep -m1 '^version' src-tauri/Cargo.toml
+
+      - name: Build the unsigned .ipa
+        env:
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_SENTRY_RELEASE: ${{ needs.version.outputs.version }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
+          VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
+        # --target aarch64 is the device slice (a-sim would build a simulator .app).
+        # --ci stops the CLI from prompting. This step builds the frontend through
+        # build.beforeBuildCommand, runs the Rust target through the Xcode Build Rust
+        # Code phase, and zips Payload/ into the .ipa itself.
+        run: pnpm tauri ios build --no-sign --ci --target aarch64
+
+      - name: Normalise the .ipa
+        run: |
+          set -euo pipefail
+          IPA="$(find src-tauri -type f -name '*.ipa' -print -quit)"
+          if [ -z "$IPA" ]; then
+            echo "::error::tauri ios build produced no .ipa - see the step above"
+            find src-tauri/gen/apple -maxdepth 4 -name "*.app" | head -20
+            exit 1
+          fi
+          echo "built: $IPA"
+          unzip -l "$IPA" | sed -n "1,12p"
+          OUT="knloop_${{ needs.version.outputs.version }}_ios-arm64-unsigned.ipa"
+          cp "$IPA" "$OUT"
+          shasum -a 256 "$OUT" > SHA256SUMS-ios.txt
+          ls -lh "$OUT"
+
+      - name: Summary
+        run: |
+          {
+            echo "### iOS test build (unsigned .ipa)"
+            echo
+            echo "This .ipa is NOT signed: a free Apple ID cannot sign from GitHub - the"
+            echo "login is interactive and there is no App Store Connect API key."
+            echo "Sign it on your own machine and install it on your own iPhone."
+            echo "The profile expires after 7 days; re-install to renew."
+            echo
+            echo "1. Install Sideloadly (https://sideloadly.io/) on Windows or macOS, plug in the iPhone."
+            echo "2. Drag knloop_${{ needs.version.outputs.version }}_ios-arm64-unsigned.ipa into Sideloadly."
+            echo "3. Enter your free Apple ID, press Start, wait for it to sign and install."
+            echo "4. On the iPhone: Settings > General > VPN & Device Management, trust the developer."
+            echo "5. To update: run this workflow again and repeat the steps above."
+            echo
+            echo "Alternative on a Mac: open src-tauri/gen/apple/knloop.xcodeproj in Xcode,"
+            echo "pick your personal Team under Signing & Capabilities, then Cmd+R (also 7 days)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-testbuild
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            knloop_*_ios-arm64-unsigned.ipa
+            SHA256SUMS-ios.txt
