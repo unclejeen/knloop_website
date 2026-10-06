@@ -196,6 +196,14 @@ jobs:
     # (observed on run 37506672643). macos-26-arm64 defaults to Xcode 26.6. The macOS job
     # above stays on macos-14 because tauri build never opens this project.
     runs-on: macos-26
+    # Xcode 26 selects a toolchain set that includes the Metal toolchain, whose
+    # .../usr/lib/swift/iphoneos paths do not exist on the runner. The Swift compatibility
+    # libraries (swiftCompatibility56, ...Concurrency, ...Packs) then cannot be found and
+    # the archive fails to link with "Undefined symbols for architecture arm64" - observed
+    # on run 37508401183. Forcing the default toolchain is the documented fix:
+    # actions/runner-images#13135.
+    env:
+      TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
     steps:
       - uses: actions/checkout@v4
         with:
