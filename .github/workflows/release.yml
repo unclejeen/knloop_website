@@ -418,6 +418,13 @@ jobs:
     name: Build (flatpak)
     needs: [version, build-linux]
     runs-on: ubuntu-22.04
+    # The action does not bring its own container: it runs flatpak-builder against whatever
+    # the job provides, and its README requires this image, privileged, with the tag matching
+    # the runtime in the manifest (ghcr.io/flathub-infra/flatpak-github-actions:gnome-48 for
+    # org.gnome.Platform//48). Without this the job fails in CI.
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
+      options: --privileged
     steps:
       - uses: actions/checkout@v4
         with:
@@ -446,6 +453,10 @@ jobs:
           bundle: knloop_${{ needs.version.outputs.version }}_linux-x86_64.flatpak
           build-bundle: true
           cache-key: flatpak-builder-${{ needs.version.outputs.version }}
+          # The action would upload the bundle itself under its own artifact name; this job
+          # uploads it explicitly instead, so the artifact the release job downloads has one
+          # predictable name.
+          upload-artifact: false
 
       - uses: actions/upload-artifact@v4
         with:
