@@ -410,10 +410,54 @@ jobs:
           retention-days: 1
           path: Quick_Start.zip
 
+  # ── flatpak: one bundle, built from this run's deb ─────────────────────────────
+  # The manifest lives in the app repository and unpacks the deb into /app instead of
+  # building Rust inside the SDK (see docs/linux-flatpak.md, ADR-0297). That is why this
+  # job needs the linux job: the deb is its input, not a rebuild.
+  build-flatpak:
+    name: Build (flatpak)
+    needs: [version, build-linux]
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
+          ref: ${{ env.SOURCE_REF }}
+          token: ${{ secrets.KNLOOP_READ_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-bundles
+          path: linux-bundles
+
+      - name: Put this run's deb where the manifest expects it
+        run: |
+          set -euo pipefail
+          deb=$(find linux-bundles -name '*.deb' -print -quit)
+          [ -n "$deb" ] || { echo '::error::the linux job produced no deb'; exit 1; }
+          cp "$deb" flatpak/knloop.deb
+          ls -l flatpak/
+
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: flatpak/com.knloop.app.yml
+          # The bundle names the version, like every other asset, so the install page and
+          # the release page can point at it without a lookup.
+          bundle: knloop_${{ needs.version.outputs.version }}_linux-x86_64.flatpak
+          build-bundle: true
+          cache-key: flatpak-builder-${{ needs.version.outputs.version }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-bundle
+          if-no-files-found: error
+          retention-days: 1
+          path: knloop_*.flatpak
+
   # ── one release: every asset + a manifest that lists every platform ────────────
   release:
     name: Publish the release
-    needs: [version, build-linux, build-windows, build-android, build-template]
+    needs: [version, build-linux, build-windows, build-android, build-template, build-flatpak]
     if: ${{ always() && needs.version.result == 'success' && needs.build-linux.result == 'success' && needs.build-windows.result == 'success' && (needs.build-android.result == 'success' || needs.build-android.result == 'skipped') && needs.build-template.result == 'success' }}
     runs-on: ubuntu-22.04
     steps:
@@ -483,7 +527,8 @@ jobs:
             \( -name '*.deb' -o -name '*.deb.sig' -o -name '*.rpm' -o -name '*.rpm.sig' \
                -o -name '*.AppImage' -o -name '*.AppImage.sig' \
                -o -name '*.exe' -o -name '*.exe.sig' -o -name '*.apk' \
-               -o -name 'Quick_Start.zip' \) | sort)
+               -o -name 'Quick_Start.zip' \
+               -o -name '*.flatpak' \) | sort)
           assets+=(latest.json)
           printf '%s\n' "${assets[@]}"
           # Notes stay generic: this repository is public, knloop's commit subjects are not.

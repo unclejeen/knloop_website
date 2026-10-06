@@ -29,6 +29,7 @@ const ASSETS_871 = [
   "knloop_0.1.0-871_linux-amd64.deb.sig",
   "knloop_0.1.0-871_linux-x86_64.rpm",
   "knloop_0.1.0-871_linux-x86_64.rpm.sig",
+  "knloop_0.1.0-871_linux-x86_64.flatpak",
   "knloop_0.1.0-871_windows-x64-setup.exe",
   "knloop_0.1.0-871_windows-x64-setup.exe.sig",
   "latest.json",
@@ -117,6 +118,7 @@ describe("install.md download links", () => {
     assert.ok(block.includes("AppImage"));
     assert.ok(block.includes("deb（Debian / Ubuntu）"));
     assert.ok(block.includes("rpm（Fedora / RHEL / openSUSE）"));
+    assert.ok(block.includes("Flatpak"));
   });
 
   it("prefers a universal apk over the per-abi one", () => {

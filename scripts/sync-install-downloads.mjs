@@ -50,6 +50,12 @@ const LINUX_VARIANTS = [
   { label: "AppImage（免安装，chmod +x 后直接运行）", pattern: /\.AppImage$/i },
   { label: "deb（Debian / Ubuntu）", pattern: /\.deb$/i },
   { label: "rpm（Fedora / RHEL / openSUSE）", pattern: /\.rpm$/i },
+  {
+    // A bundle is not a file you double-click: it is installed with one command, and saying
+    // so here is cheaper than a sentence in every release note.
+    label: "Flatpak（下载后运行 flatpak install --user 文件名.flatpak）",
+    pattern: /\.flatpak$/i,
+  },
 ];
 
 /** 资产里挑出某个平台的安装包；.sig / latest.json 不在这些后缀里，自然被排除。 */
