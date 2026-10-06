@@ -254,6 +254,35 @@ jobs:
           xcodebuild -version
           xcode-select -p
 
+      - name: Point the linker at the Swift compatibility libraries
+        # The libraries are present - /Applications/Xcode_26.6.app/Contents/Developer/
+        # Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos/libswiftCompatibility56.a
+        # exists, confirmed by the probe run 37513437407 - but Xcode 26 hands the linker the
+        # Metal toolchain's Swift directory instead, which holds no such file, so the archive
+        # link dies with 'Undefined symbols for architecture arm64 ... swiftCompatibility56'.
+        # Add the XcodeDefault directory to the project's own search paths. This is a per-run
+        # edit: knloop's committed project.pbxproj is left exactly as it is.
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/patch-pbxproj.mjs" <<'PATCH_EOF'
+          import { readFileSync, writeFileSync } from 'node:fs'
+
+          const path = process.argv[2]
+          const needle = '$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)'
+          const add = '$(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)'
+
+          const source = readFileSync(path, 'utf8')
+          const hits = source.split(needle).length - 1
+          if (hits === 0) {
+            console.error('patch-pbxproj: no LIBRARY_SEARCH_PATHS entry matched; the project layout changed')
+            process.exit(1)
+          }
+          writeFileSync(path, source.split(needle).join(needle + ' ' + add))
+          console.log('patch-pbxproj: patched ' + hits + ' search-path entries')
+          PATCH_EOF
+          node "$RUNNER_TEMP/patch-pbxproj.mjs" src-tauri/gen/apple/knloop.xcodeproj/project.pbxproj
+          grep -c 'XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME)' src-tauri/gen/apple/knloop.xcodeproj/project.pbxproj
+
       - name: Build the unsigned .ipa
         env:
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
