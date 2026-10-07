@@ -434,17 +434,12 @@ jobs:
           bundle: knloop_${{ needs.version.outputs.version }}_linux-x86_64.flatpak
           build-bundle: true
           cache-key: flatpak-builder-${{ needs.version.outputs.version }}
-          # The action would upload the bundle itself under its own artifact name; this job
-          # uploads it explicitly instead, so the artifact the release job downloads has one
-          # predictable name.
-          upload-artifact: false
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: flatpak-bundle
-          if-no-files-found: error
-          retention-days: 1
-          path: knloop_*.flatpak
+          # The action uploads the bundle it just wrote, under this name: it knows where the
+          # file is, while a separate step would have to guess at the action's layout. The
+          # release job downloads every artifact, so this lands in artifacts/ and the *.flatpak
+          # allowlist picks it up.
+          upload-artifact: true
+          artifact-name: flatpak-bundle
 
   # ── one release: every asset + a manifest that lists every platform ────────────
   release:
