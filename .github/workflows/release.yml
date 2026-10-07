@@ -4,8 +4,8 @@ name: Release (Linux + Windows + Android, built from unclejeen/knloop)
 # KNLOOP_READ_TOKEN; the app's updater endpoint is
 #   https://github.com/unclejeen/knloop_website/releases/latest/download/latest.json
 # so every release must carry latest.json, and that manifest must list every
-# platform the updater serves (windows-x86_64, linux-x86_64). Android has no
-# updater entry: its APK is just a release asset.
+# platform the updater serves (windows-x86_64). Linux and Android have no
+# updater entry: their packages are just release assets.
 #
 # REQUIRED SECRETS (see knloop docs/packaging.md section 3):
 #   KNLOOP_READ_TOKEN            fine-grained PAT, Contents:Read on unclejeen/knloop
@@ -61,7 +61,7 @@ jobs:
         id: ci
         run: node scripts/release-version.mjs ci github | tee -a "$GITHUB_OUTPUT"
 
-  # ── linux x86_64: deb, rpm, AppImage ──────────────────────────────────────────
+  # ── linux x86_64: deb, rpm ──────────────────────────────────────────
   build-linux:
     name: Build (linux-x86_64)
     needs: version
@@ -115,7 +115,6 @@ jobs:
 
       - name: Build
         env:
-          APPIMAGE_EXTRACT_AND_RUN: 1
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
@@ -123,7 +122,7 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           VITE_POSTHOG_KEY: ${{ secrets.VITE_POSTHOG_KEY }}
           VITE_POSTHOG_HOST: ${{ secrets.VITE_POSTHOG_HOST }}
-        run: pnpm tauri build --target x86_64-unknown-linux-gnu --bundles deb,rpm,appimage
+        run: pnpm tauri build --target x86_64-unknown-linux-gnu --bundles deb,rpm
 
       - name: Normalize bundle names
         run: |
@@ -138,24 +137,10 @@ jobs:
               [ -f "$src.sig" ] && mv "$src.sig" "$BUNDLE/$1/$3.sig"
             fi
           }
-          # The .tar.gz variant only exists when the bundler emits one; on the
-          # 2026-10-01 run it did not (the release carries .AppImage + .AppImage.sig),
-          # so a missing one must not fail the job.
-          optional_canonicalize() {
-            local src
-            src=$(find "$BUNDLE/$1" -maxdepth 1 -name "$2" -print -quit)
-            [ -n "$src" ] || return 0
-            if [ "$(basename "$src")" != "$3" ]; then
-              mv "$src" "$BUNDLE/$1/$3"
-              [ -f "$src.sig" ] && mv "$src.sig" "$BUNDLE/$1/$3.sig"
-            fi
-          }
 
           canonicalize deb      '*.deb'             "knloop_${VERSION}_linux-amd64.deb"
           canonicalize rpm      '*.rpm'             "knloop_${VERSION}_linux-x86_64.rpm"
-          canonicalize appimage '*.AppImage'        "knloop_${VERSION}_linux-amd64.AppImage"
-          optional_canonicalize appimage '*.AppImage.tar.gz' "knloop_${VERSION}_linux-amd64.AppImage.tar.gz"
-          ls -1 "$BUNDLE/deb" "$BUNDLE/rpm" "$BUNDLE/appimage"
+          ls -1 "$BUNDLE/deb" "$BUNDLE/rpm"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -167,10 +152,6 @@ jobs:
             src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb.sig
             src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm
             src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/rpm/*.rpm.sig
-            src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
-            src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage.sig
-            src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage.tar.gz
-            src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage.tar.gz.sig
 
   # ── windows x86_64: NSIS installer (Authenticode only when the secrets exist) ──
   build-windows:
@@ -480,7 +461,7 @@ jobs:
         # written from scratch on each run: no stale entries (an older manifest still
         # carries darwin-* from the macOS era) and nothing to merge. The local Windows
         # packaging flow must therefore NOT publish its own manifest - it would
-        # replace this one with a Windows-only file and strand Linux users.
+        # replace this one with a file built outside the release pipeline.
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -493,16 +474,11 @@ jobs:
           # sit under <artifact>/<dir>/. Read the signature next to the file find
           # returned; joining the basename with the artifact root does not exist
           # (that is what broke run 5's publish job).
-          linux_path=$(find artifacts/linux-bundles -name '*.AppImage' -print -quit)
           windows_path=$(find artifacts/windows-bundles -name '*-setup.exe' -print -quit)
-          linux_artifact=$(basename "$linux_path")
           windows_setup=$(basename "$windows_path")
-          linux_sig=$(cat "$linux_path.sig")
           windows_sig=$(cat "$windows_path.sig")
 
           VERSION="$VERSION" REPO="$REPO" TAG="$TAG" \
-          LINUX_URL="https://github.com/$REPO/releases/download/$TAG/$linux_artifact" \
-          LINUX_SIG="$linux_sig" \
           WINDOWS_URL="https://github.com/$REPO/releases/download/$TAG/$windows_setup" \
           WINDOWS_SIG="$windows_sig" node -e '
             require("node:fs").writeFileSync("latest.json", JSON.stringify({
@@ -510,11 +486,6 @@ jobs:
               notes: "knloop " + process.env.VERSION,
               pub_date: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
               platforms: {
-                "linux-x86_64": {
-                  signature: process.env.LINUX_SIG,
-                  url: process.env.LINUX_URL,
-                  download_url: process.env.LINUX_URL,
-                },
                 "windows-x86_64": {
                   signature: process.env.WINDOWS_SIG,
                   url: process.env.WINDOWS_URL,
@@ -536,7 +507,6 @@ jobs:
           # download layout, so the release would have shipped without installers.
           mapfile -t assets < <(find artifacts -type f \
             \( -name '*.deb' -o -name '*.deb.sig' -o -name '*.rpm' -o -name '*.rpm.sig' \
-               -o -name '*.AppImage' -o -name '*.AppImage.sig' \
                -o -name '*.exe' -o -name '*.exe.sig' -o -name '*.apk' \
                -o -name 'Quick_Start.zip' \
                -o -name '*.flatpak' \) | sort)

@@ -14,7 +14,8 @@
 
 ### Linux（有多个包，按你的发行版选一个）
 
-- [knloop_0.1.0-1212_linux-amd64.AppImage](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-1212/knloop_0.1.0-1212_linux-amd64.AppImage) — AppImage（免安装，chmod +x 后直接运行）
+<!-- 这个块由 scripts/sync-install-downloads.mjs 从最新 release 重新生成（发布后自动更新）：
+     AppImage 渠道已移除 [ADR-0298]，Flatpak bundle 会在这个 release 带上它之后自动出现。 -->
 - [knloop_0.1.0-1212_linux-amd64.deb](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-1212/knloop_0.1.0-1212_linux-amd64.deb) — deb（Debian / Ubuntu）
 - [knloop_0.1.0-1212_linux-x86_64.rpm](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-1212/knloop_0.1.0-1212_linux-x86_64.rpm) — rpm（Fedora / RHEL / openSUSE）
 

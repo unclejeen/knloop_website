@@ -119,13 +119,14 @@ describe("release asset picking", () => {
     );
   });
 
-  it("prefers AppImage, then deb", () => {
+  it("prefers a deb, then an rpm", () => {
     assert.ok(
-      pickAssetUrl([asset("knloop_0.1.0-770_amd64.deb"), asset("knloop_0.1.0-770_x86_64.AppImage")], "linux")
-        .endsWith("/knloop_0.1.0-770_x86_64.AppImage"),
+      pickAssetUrl([asset("knloop_0.1.0-770_linux-x86_64.rpm"), asset("knloop_0.1.0-770_amd64.deb")], "linux")
+        .endsWith("/knloop_0.1.0-770_amd64.deb"),
     );
     assert.ok(
-      pickAssetUrl([asset("knloop_0.1.0-770_amd64.deb")], "linux").endsWith("/knloop_0.1.0-770_amd64.deb"),
+      pickAssetUrl([asset("knloop_0.1.0-770_linux-x86_64.rpm")], "linux")
+        .endsWith("/knloop_0.1.0-770_linux-x86_64.rpm"),
     );
   });
 
@@ -140,8 +141,6 @@ describe("release asset picking", () => {
   it("picks the platform-prefixed 0.1.0-871 assets", () => {
     const release871 = [
       "knloop_0.1.0-871_android-arm64-v8a.apk",
-      "knloop_0.1.0-871_linux-amd64.AppImage",
-      "knloop_0.1.0-871_linux-amd64.AppImage.sig",
       "knloop_0.1.0-871_linux-amd64.deb",
       "knloop_0.1.0-871_linux-amd64.deb.sig",
       "knloop_0.1.0-871_linux-x86_64.rpm",
@@ -152,7 +151,7 @@ describe("release asset picking", () => {
     ].map(asset);
 
     assert.match(pickAssetUrl(release871, "windows"), /knloop_0\.1\.0-871_windows-x64-setup\.exe$/);
-    assert.match(pickAssetUrl(release871, "linux"), /knloop_0\.1\.0-871_linux-amd64\.AppImage$/);
+    assert.match(pickAssetUrl(release871, "linux"), /knloop_0\.1\.0-871_linux-amd64\.deb$/);
     assert.match(pickAssetUrl(release871, "android"), /knloop_0\.1\.0-871_android-arm64-v8a\.apk$/);
   });
 
@@ -172,10 +171,10 @@ describe("download targets", () => {
   });
 
   it("sends Linux to the install guide so users pick their own package", () => {
-    const appimage = `${GH_PROXY}/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-871/knloop_0.1.0-871_linux-amd64.AppImage`;
-    // 不管拉没拉到 release，Linux 都不给直链——AppImage 只是其中一个发行包
+    const deb = `${GH_PROXY}/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-871/knloop_0.1.0-871_linux-amd64.deb`;
+    // 不管拉没拉到 release，Linux 都不给直链——deb 只是其中一个发行包
     assert.deepEqual(resolveDownloadTarget("linux", {}), LINUX_DOWNLOAD_TARGET);
-    assert.deepEqual(resolveDownloadTarget("linux", { linux: appimage }), LINUX_DOWNLOAD_TARGET);
+    assert.deepEqual(resolveDownloadTarget("linux", { linux: deb }), LINUX_DOWNLOAD_TARGET);
     assert.equal(LINUX_DOWNLOAD_TARGET.label, "Linux");
     assert.equal(LINUX_DOWNLOAD_TARGET.url, "/install");
   });

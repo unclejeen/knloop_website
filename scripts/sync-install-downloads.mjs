@@ -43,11 +43,10 @@ const PLATFORMS = [
 ];
 
 /**
- * Linux 有多个发行包，站点按钮只能猜一个（AppImage 优先），所以文档里全列出来，
+ * Linux 有多个发行包，站点按钮只能猜一个，所以文档里全列出来，
  * 让用户自己按发行版选。顺序与站点按钮的偏好一致。
  */
 const LINUX_VARIANTS = [
-  { label: "AppImage（免安装，chmod +x 后直接运行）", pattern: /\.AppImage$/i },
   { label: "deb（Debian / Ubuntu）", pattern: /\.deb$/i },
   { label: "rpm（Fedora / RHEL / openSUSE）", pattern: /\.rpm$/i },
   {

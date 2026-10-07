@@ -23,8 +23,6 @@ const TAG = "0.1.0-871";
 /** 真实的 0.1.0-871 资产（含 .sig、latest.json——它们不该出现在文档里）。 */
 const ASSETS_871 = [
   "knloop_0.1.0-871_android-arm64-v8a.apk",
-  "knloop_0.1.0-871_linux-amd64.AppImage",
-  "knloop_0.1.0-871_linux-amd64.AppImage.sig",
   "knloop_0.1.0-871_linux-amd64.deb",
   "knloop_0.1.0-871_linux-amd64.deb.sig",
   "knloop_0.1.0-871_linux-x86_64.rpm",
@@ -67,7 +65,6 @@ describe("install.md download links", () => {
     for (const asset of [
       "windows-x64-setup.exe",
       "android-arm64-v8a.apk",
-      "linux-amd64.AppImage",
       "linux-amd64.deb",
       "linux-x86_64.rpm",
     ]) {
@@ -115,7 +112,6 @@ describe("install.md download links", () => {
   it("lists the linux packages a button cannot choose between", () => {
     const block = renderInstallBlock(release());
     assert.ok(block.includes("Linux（有多个包，按你的发行版选一个）"));
-    assert.ok(block.includes("AppImage"));
     assert.ok(block.includes("deb（Debian / Ubuntu）"));
     assert.ok(block.includes("rpm（Fedora / RHEL / openSUSE）"));
     assert.ok(block.includes("Flatpak"));

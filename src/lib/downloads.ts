@@ -5,7 +5,7 @@
  * 页面在浏览器里经 gh-proxy 加速拉一次最新 release，按下面的 ASSET_PATTERNS
  * 认出各平台的产物，所以发了新版不用回来改地址。
  * macOS / iOS 还没有包，按钮置灰显示「即将推出」（见 resolveDownloadTarget）。
- * Linux 有 AppImage / deb / rpm 好几个包，按钮不替用户猜，统一跳安装说明页
+ * Linux 有 deb / rpm 等好几个包，按钮不替用户猜，统一跳安装说明页
  * （见 LINUX_DOWNLOAD_TARGET），让用户按发行版自己选。
  * 拉取失败时 Windows 退回 STATIC_DOWNLOADS 里那个已知可用的直链，Android 保持置灰；
  * 认不出平台时用 DEFAULT_DOWNLOAD（安装说明页）。
@@ -85,9 +85,6 @@ export const ASSET_PATTERNS: Record<DownloadablePlatform, RegExp[]> = {
   windows: [/x64-setup\.exe$/i, /setup\.exe$/i],
   android: [/universal\.apk$/i, /arm64.*\.apk$/i, /\.apk$/i],
   linux: [
-    /x86_64\.AppImage$/i,
-    /amd64\.AppImage$/i,
-    /\.AppImage$/i,
     /amd64\.deb$/i,
     /\.deb$/i,
     /\.rpm$/i,
@@ -116,7 +113,7 @@ export const STATIC_DOWNLOADS: Partial<Record<DownloadablePlatform, DownloadTarg
 export const DEFAULT_DOWNLOAD: DownloadTarget = { label: "knloop", url: "/install" };
 
 /**
- * Linux 的包有 AppImage / deb / rpm 好几个，按钮替用户猜一个（以前是 AppImage 优先）
+ * Linux 的包有 deb / rpm 好几个，按钮替用户猜一个
  * 必然让另一半人下错包，所以 Linux 不解析直链，统一去安装说明页按发行版自己选。
  * 按钮下面那句小字（home.hero.installHintLinux）就是同一件事的提示。
  */
