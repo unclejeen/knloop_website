@@ -16,7 +16,7 @@
 
 - [knloop_0.1.0-1291_linux-amd64.deb](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-1291/knloop_0.1.0-1291_linux-amd64.deb) — deb（Debian / Ubuntu）
 - [knloop_0.1.0-1291_linux-x86_64.rpm](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-1291/knloop_0.1.0-1291_linux-x86_64.rpm) — rpm（Fedora / RHEL / openSUSE）
-- [knloop_0.1.0-1291_linux-x86_64.flatpak](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-1291/knloop_0.1.0-1291_linux-x86_64.flatpak) — Flatpak（下载后运行 flatpak install --user 文件名.flatpak）
+- [knloop_0.1.0-1291_linux-x86_64.flatpak](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.1.0-1291/knloop_0.1.0-1291_linux-x86_64.flatpak) — Flatpak
 
 ### macOS / iOS
 
