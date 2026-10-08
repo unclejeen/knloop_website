@@ -260,12 +260,25 @@ jobs:
           MSSTORE_PUBLISHER: ${{ vars.MSSTORE_PUBLISHER || 'CN=knloop' }}
           MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME || 'knloop' }}
           MSSTORE_DISPLAY_NAME: ${{ vars.MSSTORE_DISPLAY_NAME }}
-          MSSTORE_STORE_READY: ${{ vars.MSSTORE_IDENTITY_NAME != '' && vars.MSSTORE_PUBLISHER != '' && vars.MSSTORE_PUBLISHER_DISPLAY_NAME != '' }}
+          # Per-variable flags, not one combined boolean: the warning has to NAME the
+          # variable that is missing. A combined flag sent someone to Partner Center to
+          # read "PublisherDisplayName is knloop, the registered name is 影象限" when the
+          # build log could have said "MSSTORE_PUBLISHER_DISPLAY_NAME is not set".
+          MSSTORE_IDENTITY_NAME_SET: ${{ vars.MSSTORE_IDENTITY_NAME != '' }}
+          MSSTORE_PUBLISHER_SET: ${{ vars.MSSTORE_PUBLISHER != '' }}
+          MSSTORE_PUBLISHER_DISPLAY_NAME_SET: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME != '' }}
         run: |
-          if ($env:MSSTORE_STORE_READY -ne "true") {
-            Write-Host "::warning::the MSSTORE_* repository variables are not all set, so this MSIX carries the DEVELOPMENT identity ($env:MSSTORE_IDENTITY_NAME / $env:MSSTORE_PUBLISHER). Partner Center rejects such a package at upload, before certification: Identity/@Name must be a reserved app name ('The name found in the package is not one of your reserved app names'), Identity/@Publisher must be the account's CN=<GUID>, and PublisherDisplayName must match the registered name character for character. Fill MSSTORE_IDENTITY_NAME, MSSTORE_PUBLISHER and MSSTORE_PUBLISHER_DISPLAY_NAME from Partner Center -> Product management -> Product Identity (knloop docs/windows-packaging.md, section 7)."
+          $missing = @()
+          if ($env:MSSTORE_IDENTITY_NAME_SET -ne "true") { $missing += "MSSTORE_IDENTITY_NAME" }
+          if ($env:MSSTORE_PUBLISHER_SET -ne "true") { $missing += "MSSTORE_PUBLISHER" }
+          if ($env:MSSTORE_PUBLISHER_DISPLAY_NAME_SET -ne "true") { $missing += "MSSTORE_PUBLISHER_DISPLAY_NAME" }
+          Write-Host "[msix] Identity Name        = $env:MSSTORE_IDENTITY_NAME"
+          Write-Host "[msix] Identity Publisher   = $env:MSSTORE_PUBLISHER"
+          Write-Host "[msix] PublisherDisplayName = $env:MSSTORE_PUBLISHER_DISPLAY_NAME"
+          if ($missing.Count -gt 0) {
+            Write-Host "::warning::repository variable(s) not set: $($missing -join ', '). This MSIX carries the DEVELOPMENT fallback for them, so Partner Center rejects it at upload, before certification: Identity/@Name must be a reserved app name ('The name found in the package is not one of your reserved app names'), Identity/@Publisher must be the account's CN=<GUID>, and PublisherDisplayName must match the registered name character for character. Set them from Partner Center -> Product management -> Product Identity (knloop docs/windows-packaging.md, section 7.2)."
           } else {
-            Write-Host "[msix] Microsoft Store identity configured."
+            Write-Host "[msix] Microsoft Store identity is fully configured."
           }
           $arguments = @{
             ReleaseVersion       = "${{ needs.version.outputs.version }}"
