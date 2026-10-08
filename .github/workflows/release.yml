@@ -263,7 +263,7 @@ jobs:
           MSSTORE_STORE_READY: ${{ vars.MSSTORE_IDENTITY_NAME != '' && vars.MSSTORE_PUBLISHER != '' && vars.MSSTORE_PUBLISHER_DISPLAY_NAME != '' }}
         run: |
           if ($env:MSSTORE_STORE_READY -ne "true") {
-            Write-Host "::warning::the MSSTORE_* repository variables are not all set, so this MSIX carries the DEVELOPMENT identity ($env:MSSTORE_IDENTITY_NAME / $env:MSSTORE_PUBLISHER). It installs and is testable, but Partner Center rejects it. Fill MSSTORE_IDENTITY_NAME, MSSTORE_PUBLISHER and MSSTORE_PUBLISHER_DISPLAY_NAME from Partner Center -> Product management -> Product Identity (knloop docs/windows-packaging.md, section 7)."
+            Write-Host "::warning::the MSSTORE_* repository variables are not all set, so this MSIX carries the DEVELOPMENT identity ($env:MSSTORE_IDENTITY_NAME / $env:MSSTORE_PUBLISHER). Partner Center rejects such a package at upload, before certification: Identity/@Name must be a reserved app name ('The name found in the package is not one of your reserved app names'), Identity/@Publisher must be the account's CN=<GUID>, and PublisherDisplayName must match the registered name character for character. Fill MSSTORE_IDENTITY_NAME, MSSTORE_PUBLISHER and MSSTORE_PUBLISHER_DISPLAY_NAME from Partner Center -> Product management -> Product Identity (knloop docs/windows-packaging.md, section 7)."
           } else {
             Write-Host "[msix] Microsoft Store identity configured."
           }
