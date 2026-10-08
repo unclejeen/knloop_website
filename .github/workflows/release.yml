@@ -13,6 +13,8 @@ name: Release (Linux + Windows + Android, built from unclejeen/knloop)
 #   TAURI_KEY_PASSWORD           that key's password
 # Optional, Android (the job enables itself when ANDROID_KEYSTORE_BASE64 exists):
 #   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+# Optional, Microsoft Store MSIX (the step skips itself while these repository VARIABLES are unset):
+#   MSSTORE_IDENTITY_NAME, MSSTORE_PUBLISHER, MSSTORE_PUBLISHER_DISPLAY_NAME, MSSTORE_DISPLAY_NAME
 # Optional, Windows Authenticode (unsigned builds still publish):
 #   WINDOWS_CODE_SIGNING_CERTIFICATE, WINDOWS_CODE_SIGNING_CERTIFICATE_PASSWORD
 # Optional, telemetry: VITE_SENTRY_DSN, SENTRY_DSN, VITE_POSTHOG_KEY, VITE_POSTHOG_HOST
@@ -244,6 +246,54 @@ jobs:
           }
           Get-ChildItem $dir | ForEach-Object { $_.Name }
 
+      # ── Microsoft Store: an unsigned MSIX off the binary this job just built ──────
+      # knloop ADR-0305. The Store accepts MSIX for the "MSIX app" product type and
+      # re-signs it, so no code-signing certificate is needed. Identity values come
+      # from repository VARIABLES; while they are unset the step skips itself with a
+      # notice instead of failing the release (the Android keystore guard's shape).
+      - name: Is the Microsoft Store identity configured?
+        id: store
+        shell: pwsh
+        env:
+          IDENTITY_NAME: ${{ vars.MSSTORE_IDENTITY_NAME }}
+          PUBLISHER: ${{ vars.MSSTORE_PUBLISHER }}
+          PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+        run: |
+          $missing = @(
+            @{ Name = "MSSTORE_IDENTITY_NAME"; Value = $env:IDENTITY_NAME },
+            @{ Name = "MSSTORE_PUBLISHER"; Value = $env:PUBLISHER },
+            @{ Name = "MSSTORE_PUBLISHER_DISPLAY_NAME"; Value = $env:PUBLISHER_DISPLAY_NAME }
+          ) | Where-Object { [string]::IsNullOrWhiteSpace($_.Value) } | ForEach-Object { $_.Name }
+          # Re-wrap: a one-element pipeline yields a string, and .Count on it is a scalar quirk.
+          $missing = @($missing)
+          if ($missing.Count -gt 0) {
+            "ready=false" >> $env:GITHUB_OUTPUT
+            Write-Host "::notice::Microsoft Store MSIX skipped: repository variables $($missing -join ', ') are not set. Fill them with the Partner Center -> Product management -> Product Identity values (knloop docs/windows-packaging.md, section 7)."
+          } else {
+            "ready=true" >> $env:GITHUB_OUTPUT
+          }
+
+      - if: steps.store.outputs.ready == 'true'
+        name: Build the Microsoft Store MSIX
+        shell: pwsh
+        env:
+          MSSTORE_IDENTITY_NAME: ${{ vars.MSSTORE_IDENTITY_NAME }}
+          MSSTORE_PUBLISHER: ${{ vars.MSSTORE_PUBLISHER }}
+          MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+          MSSTORE_DISPLAY_NAME: ${{ vars.MSSTORE_DISPLAY_NAME }}
+        run: |
+          $arguments = @{
+            ReleaseVersion       = "${{ needs.version.outputs.version }}"
+            IdentityName         = $env:MSSTORE_IDENTITY_NAME
+            Publisher            = $env:MSSTORE_PUBLISHER
+            PublisherDisplayName = $env:MSSTORE_PUBLISHER_DISPLAY_NAME
+            TargetTriple         = "x86_64-pc-windows-msvc"
+          }
+          if (-not [string]::IsNullOrWhiteSpace($env:MSSTORE_DISPLAY_NAME)) {
+            $arguments.DisplayName = $env:MSSTORE_DISPLAY_NAME
+          }
+          ./scripts/msix/build-msix.ps1 @arguments
+
       - uses: actions/upload-artifact@v4
         with:
           name: windows-bundles
@@ -252,6 +302,7 @@ jobs:
           path: |
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe.sig
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msix/*.msix
 
   # ── android arm64: runs by itself once the keystore secrets exist ──────────────
   build-android:
@@ -502,7 +553,7 @@ jobs:
           # download layout, so the release would have shipped without installers.
           mapfile -t assets < <(find artifacts -type f \
             \( -name '*.deb' -o -name '*.deb.sig' -o -name '*.rpm' -o -name '*.rpm.sig' \
-               -o -name '*.exe' -o -name '*.exe.sig' -o -name '*.apk' \
+               -o -name '*.exe' -o -name '*.exe.sig' -o -name '*.apk' -o -name '*.msix' \
                -o -name 'Quick_Start.zip' \
                -o -name '*.flatpak' \) | sort)
           assets+=(latest.json)
