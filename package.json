@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/generate-search-index.mjs",
+    "prebuild": "node scripts/generate-search-index.mjs && node scripts/generate-llms-files.mjs",
     "images": "node scripts/optimize-home-shots.mjs",
     "build": "next build",
     "start": "next start",

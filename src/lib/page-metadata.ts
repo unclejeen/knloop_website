@@ -17,6 +17,10 @@ export function pageMetadata(slug: string): Metadata {
   return {
     title: slug === "" ? fullTitle : displayTitle,
     description,
+    // llms.txt v2：文档页有对应的 Markdown 版本（public/{slug}.md，见
+    // scripts/generate-llms-files.mjs），这里声明 <link rel="alternate" type="text/markdown">，
+    // Agent 不用先读 llms.txt 也能发现它。
+    alternates: doc ? { types: { "text/markdown": `${doc.path}.md` } } : undefined,
     openGraph: {
       type: "website",
       locale: "zh_CN",

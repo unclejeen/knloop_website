@@ -1,6 +1,14 @@
 /_next/static/*
   Cache-Control: public, max-age=31536000, immutable
 
+# LLM 友好文件：llms.txt 与页面的 Markdown 版本（scripts/generate-llms-files.mjs 生成）。
+# 明确内容类型，Agent 拿到就能按 markdown 解析，不用猜。
+/llms.txt
+  Content-Type: text/markdown; charset=utf-8
+
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+
 # 首页截图：文件名里带内容哈希（scripts/optimize-home-shots.mjs 生成），
 # 换图会换名字，所以可以放心一年不可变缓存。
 /home/*

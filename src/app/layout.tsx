@@ -76,6 +76,11 @@ export const metadata: Metadata = {
     title: "knloop",
     description: SITE_DESCRIPTION,
   },
+  // llms.txt v2：首页的 Markdown 版本是 /index.md（scripts/generate-llms-files.mjs 生成）。
+  // 文档页在 page-metadata.ts 里各自声明自己的 .md，会覆盖这一条。
+  alternates: {
+    types: { "text/markdown": "/index.md" },
+  },
   icons: {
     icon: "/knloop-icon.svg",
   },

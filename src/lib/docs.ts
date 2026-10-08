@@ -23,11 +23,22 @@ export const docs: Doc[] = [
     sourcePath: "/articles/Feedback.md",
     section: "反馈",
   },
+  {
+    slug: "privacy",
+    title: "隐私政策",
+    titleEn: "Privacy Policy",
+    description: "knloop 如何处理你的数据：笔记只存本地，内容不被收集。",
+    descriptionEn: "How knloop handles your data: notes stay on your device, content is never collected.",
+    path: "/privacy",
+    sourcePath: "/articles/privacy.md",
+    section: "法律",
+  },
 ];
 
 export const SECTION_LABELS: Record<string, { en: string }> = {
   快速开始: { en: "Quick start" },
   反馈: { en: "Feedback" },
+  法律: { en: "Legal" },
 };
 
 export function groupBySection(allDocs: Doc[]): DocsGroup[] {

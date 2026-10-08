@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { BrandLockup } from "@/components/brand-lockup";
 import { useHomeMessages } from "@/i18n/locale";
 
@@ -28,6 +29,13 @@ export function HomeFooter() {
 
         {/* 右：版权 + 备案 */}
         <div className="flex flex-col items-center gap-1.5 text-[0.75rem] text-muted md:items-end md:text-right">
+          {/* 隐私政策入口：备案与合规信息的常规落点，放在版权行上方。 */}
+          <Link
+            href="/privacy"
+            className="no-underline transition-colors hover:text-fg"
+          >
+            {footer.privacy}
+          </Link>
           <p className="m-0">Copyright © {year} knloop. All Rights Reserved.</p>
           <a
             href={ICP_URL}
