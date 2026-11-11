@@ -60,13 +60,13 @@ jobs:
     outputs:
       version: ${{ steps.ci.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: ${{ env.SOURCE_REF }}
           token: ${{ secrets.KNLOOP_READ_TOKEN }}
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
       - name: Derive version from the package version and the commit count
@@ -80,15 +80,14 @@ jobs:
     if: ${{ inputs.macos }}
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: ${{ env.SOURCE_REF }}
           token: ${{ secrets.KNLOOP_READ_TOKEN }}
 
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
-        with: { version: 10 }
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
         with: { node-version: "22", cache: "pnpm" }
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
         with: { targets: aarch64-apple-darwin }
@@ -175,7 +174,7 @@ jobs:
             echo "Then open it normally. Repeat for the next build."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: macos-testbuild
           if-no-files-found: error
@@ -205,15 +204,14 @@ jobs:
     env:
       TOOLCHAINS: com.apple.dt.toolchain.XcodeDefault
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: ${{ env.SOURCE_REPOSITORY }}
           ref: ${{ env.SOURCE_REF }}
           token: ${{ secrets.KNLOOP_READ_TOKEN }}
 
-      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa
-        with: { version: 10 }
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
         with: { node-version: "22", cache: "pnpm" }
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
         with: { targets: aarch64-apple-ios }
@@ -332,7 +330,7 @@ jobs:
             echo "pick your personal Team under Signing & Capabilities, then Cmd+R (also 7 days)."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: ios-testbuild
           if-no-files-found: error
