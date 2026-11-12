@@ -69,6 +69,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
+          package-manager-cache: false
       - name: Derive version from the package version and the commit count
         id: ci
         run: node scripts/release-version.mjs ci github | tee -a "$GITHUB_OUTPUT"

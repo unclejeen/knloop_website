@@ -60,6 +60,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
+          package-manager-cache: false
       - name: Derive <package version>-<commit count>
         id: ci
         run: node scripts/release-version.mjs ci github | tee -a "$GITHUB_OUTPUT"
@@ -579,7 +580,7 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
       # node 24 on purpose: scripts/sync-install-downloads.mjs imports src/lib/downloads.ts.
       - uses: actions/setup-node@v5
-        with: { node-version: "24" }
+        with: { node-version: "24", package-manager-cache: false }
       - name: Rewrite the links from the release that was just published
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
