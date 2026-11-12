@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <>
+    <div className="flex min-h-[calc(100dvh-3.5rem)] flex-col">
       <main className="flex flex-1 flex-col">
         <DownloadPage />
       </main>
       <HomeFooter />
-    </>
+    </div>
   );
 }

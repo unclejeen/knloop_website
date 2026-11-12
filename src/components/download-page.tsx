@@ -97,7 +97,7 @@ export function DownloadPage() {
     selected === "windows" ? copy.windowsDownload : selected === "android" ? copy.androidDownload : "";
 
   return (
-    <section className="mx-auto w-[min(100%-3rem,72rem)] py-12 text-center sm:py-16 md:py-20">
+    <section className="mx-auto flex w-[min(100%-3rem,72rem)] flex-1 flex-col items-center justify-center py-10 text-center sm:py-12">
       <h1 className="sr-only">下载 knloop</h1>
       <p className="m-0 flex flex-wrap items-center justify-center gap-2 text-xs text-muted">
         <span>{copy.versionLabel}</span>
