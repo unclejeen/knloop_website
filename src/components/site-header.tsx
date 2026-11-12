@@ -60,6 +60,12 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-3 sm:gap-4">
           <Link
+            href="/download"
+            className="text-sm text-muted transition-colors hover:text-fg"
+          >
+            {t("nav.download")}
+          </Link>
+          <Link
             href="/install"
             className="text-sm text-muted transition-colors hover:text-fg"
           >

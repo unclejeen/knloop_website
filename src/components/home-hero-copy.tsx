@@ -1,7 +1,7 @@
 "use client";
 
 import { BrandLockup } from "@/components/brand-lockup";
-import { DownloadButton } from "@/components/download-button";
+import { HeroActions } from "@/components/hero-actions";
 import { HomeSection } from "@/components/home-section";
 import { useHomeMessages } from "@/i18n/locale";
 
@@ -13,7 +13,7 @@ import { useHomeMessages } from "@/i18n/locale";
  * 底边到预览的间距是这里的 --home-copy-gap。
  * 标题的字号/字重/字距/字体分档都写在 globals.css 的 .home-hero-title
  * （clamp 跟随视口，拉丁 Geist + 中文思源黑体）。
- * 标题与副标题来自 i18n 的 home.hero，下载按钮见 download-button.tsx；
+ * 标题与副标题来自 i18n 的 home.hero，双 CTA 见 hero-actions.tsx；
  * badge（1.0 前实验版本）暂时隐藏，
  * 想恢复的话把它接回 BrandLockup 的位置即可。
  */
@@ -34,7 +34,7 @@ export function HomeHeroCopy() {
         </p>
         {/* 下载按钮：按平台换链接，见表 src/lib/downloads.ts；
             installHint 在按钮下方挂一条指向安装说明的小字链接（Linux 多个包自己选） */}
-        <DownloadButton className="mt-12" installHint />
+        <HeroActions className="mt-12" />
       </div>
     </HomeSection>
   );

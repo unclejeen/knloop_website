@@ -19,18 +19,22 @@
     "copy.idle": "复制代码到剪贴板",
     "copy.copied": "代码已复制到剪贴板",
     "anchor.idle": "复制锚点链接",
-    "anchor.copied": "锚点链接已复制"
+    "anchor.copied": "锚点链接已复制",
+    "nav.download": "下载"
   },
   "home": {
     "hero": {
       "title": "Agent 原生知识库",
-      "lede": "knloop 探索 Agent 作为主要用户时，知识管理可以是什么样子。目标是实现人机对齐，所有内容以 .md 格式存储，不绑定人类用户的同时 对 Agent 更友好。",
+      "lede": "本地优先的 Markdown 知识库。文件留在自己的文件夹里，人和 Agent 共用同一份。",
       "note": "knloop 会继续探索更适合与 Agent 交互的方案。",
-      "download": "{platform} 版下载",
+      "download": "下载 {platform} 版",
       "downloadAll": "其它平台下载",
       "comingSoon": "即将推出",
       "connecting": "正在连接…",
-      "installHint": "更多版本"
+      "installHint": "更多版本",
+      "webCta": "免费使用 knloop",
+      "clientDownload": "下载客户端",
+      "localNote": "浏览器直接打开 · 数据仍保存在本地文件夹"
     },
     "flow": [
       {
@@ -89,5 +93,21 @@
       "tagline": "为每一位知识工作者和团队提供高效的知识管理工具。",
       "privacy": "隐私政策"
     }
+  },
+  "download": {
+    "versionLabel": "最新版本",
+    "releases": "GitHub Releases",
+    "recommended": "推荐",
+    "webBefore": "不想安装？",
+    "webLink": "直接用网页版",
+    "install": "安装说明",
+    "windowsMeta": "Windows 10 / 11 · x64",
+    "windowsDownload": "下载 Windows 版",
+    "linuxMeta": "x86_64 · 按发行版选择",
+    "linuxDeb": "Debian / Ubuntu",
+    "linuxRpm": "Fedora / RHEL",
+    "linuxFlatpak": "任意发行版",
+    "androidMeta": "Android 10+ · arm64",
+    "androidDownload": "下载 Android 版"
   }
 }

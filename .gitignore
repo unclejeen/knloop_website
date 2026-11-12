@@ -10,3 +10,6 @@ next-env.d.ts
 *.keystore
 *.key
 *.key.pub
+
+# 设计评审用的原型/快照工作目录（部署只依赖 public/hero）
+/prototype/

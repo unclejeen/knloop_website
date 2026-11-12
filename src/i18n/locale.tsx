@@ -2,8 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { DEFAULT_LOCALE, LOCALE_COOKIE, homeMessages, translate } from "./dictionaries";
-import type { HomeMessages, Locale, MessageKey } from "./dictionaries";
+import { DEFAULT_LOCALE, LOCALE_COOKIE, homeMessages, messages, translate } from "./dictionaries";
+import type { HomeMessages, Locale, MessageKey, Messages } from "./dictionaries";
 
 type LocaleContextValue = {
   locale: Locale;
@@ -56,4 +56,9 @@ export function useLocale(): LocaleContextValue {
 /** 首页文案整块，随语言切换。 */
 export function useHomeMessages(): HomeMessages {
   return homeMessages(useLocale().locale);
+}
+
+/** 下载页文案整块，随语言切换。 */
+export function useDownloadMessages(): Messages["download"] {
+  return messages[useLocale().locale].download;
 }

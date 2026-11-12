@@ -19,18 +19,22 @@
     "copy.idle": "Copy code to clipboard",
     "copy.copied": "Code copied to clipboard",
     "anchor.idle": "Copy link to heading",
-    "anchor.copied": "Link copied to clipboard"
+    "anchor.copied": "Link copied to clipboard",
+    "nav.download": "Download"
   },
   "home": {
     "hero": {
       "title": "An agent-native knowledge base",
-      "lede": "knloop explores what knowledge management looks like when agents are the primary user. The goal is alignment between people and agents: everything lives as .md files, so nothing is tied to one app and agents can work with it directly.",
+      "lede": "A local-first Markdown knowledge base. Files stay in your folder, shared by you and your agents.",
       "note": "knloop will keep exploring better ways to work alongside agents.",
       "download": "Download for {platform}",
       "downloadAll": "Other platforms",
       "comingSoon": "Coming soon",
       "connecting": "Connecting…",
-      "installHint": "More versions"
+      "installHint": "More versions",
+      "webCta": "Use knloop for free",
+      "clientDownload": "Download app",
+      "localNote": "Runs in your browser · files stay in your local folder"
     },
     "flow": [
       {
@@ -89,5 +93,21 @@
       "tagline": "Efficient knowledge management tools for every knowledge worker and team.",
       "privacy": "Privacy Policy"
     }
+  },
+  "download": {
+    "versionLabel": "Latest version",
+    "releases": "GitHub Releases",
+    "recommended": "Recommended",
+    "webBefore": "Don't want to install?",
+    "webLink": "Open the web app",
+    "install": "Install guide",
+    "windowsMeta": "Windows 10 / 11 · x64",
+    "windowsDownload": "Download for Windows",
+    "linuxMeta": "x86_64 · choose your distro",
+    "linuxDeb": "Debian / Ubuntu",
+    "linuxRpm": "Fedora / RHEL",
+    "linuxFlatpak": "Any distro",
+    "androidMeta": "Android 10+ · arm64",
+    "androidDownload": "Download for Android"
   }
 }
