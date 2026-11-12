@@ -14,7 +14,8 @@ import { useLocale } from "@/i18n/locale";
  *   · 桌面：外框 16:9，iframe 宽度 = 外框宽、高度固定 810（客户端原生布局高度），
  *     往文档里注入 html { zoom: 外框宽 / 1440 }。客户端仍按 1440×810 排版
  *     （正文栏 720px），Chrome 按目标尺寸原生栅格化，文字清晰；没有 transform 缩放。
- *   · 移动（<768px）：真实 390×844 移动布局，1:1 显示（zoom: 1）。
+ *   · 移动（<768px）：真实 390×844 移动布局，等比缩到卡片宽度（约 0.82），
+ *     字体小一档；卡片可整体只读，触摸滚动交给页面，不会被困在 iframe 里。
  *
  * 主题/语言跟随站点：LocaleProvider 切语言时换 iframe src，next-themes 切主题时
  * 给快照的 <html> 加/去 .dark。站点的滚轮在 Hero 上时：文档区自己滚，其它区域
@@ -42,7 +43,9 @@ export function HomeHeroApp() {
   const { locale } = useLocale();
   const { theme } = useTheme();
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const frameBoxRef = useRef<HTMLDivElement | null>(null);
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const [mobileScale, setMobileScale] = useState(1);
   const [systemDark, setSystemDark] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -143,14 +146,26 @@ export function HomeHeroApp() {
     applyTheme();
   }, [applyTheme]);
 
-  // 外框宽度变化（窗口缩放、侧栏出现）：重算 zoom。
+  // 外框宽度变化（窗口缩放、侧栏出现）：桌面重算 zoom；移动端重算等比缩放。
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !ready) return;
-    const observer = new ResizeObserver(() => applyZoom());
-    observer.observe(iframe);
+
+    if (!isMobile) {
+      setMobileScale(1);
+      const observer = new ResizeObserver(() => applyZoom());
+      observer.observe(iframe);
+      return () => observer.disconnect();
+    }
+
+    const box = frameBoxRef.current;
+    if (!box) return;
+    const update = () => setMobileScale(Math.min(1, box.clientWidth / 390));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(box);
     return () => observer.disconnect();
-  }, [applyZoom, ready]);
+  }, [applyZoom, isMobile, ready]);
 
   // 页面滚动转发（iframe 发来的 hero:wheel）。
   useEffect(() => {
@@ -170,7 +185,7 @@ export function HomeHeroApp() {
       : "/hero/" + (isMobile ? "mobile" : "desktop") + "-" + (locale === "en" ? "en" : "zh") + ".html";
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-bg">
+    <div ref={frameBoxRef} className="relative h-full w-full overflow-hidden bg-bg">
       {src ? (
         <iframe
           ref={iframeRef}
@@ -179,10 +194,20 @@ export function HomeHeroApp() {
           title={isMobile ? "knloop 移动端应用预览" : "knloop 应用预览"}
           onLoad={handleLoad}
           className={
-            "absolute inset-x-0 top-0 w-full border-0 " +
-            (isMobile ? "h-full" : "h-[810px]")
+            "absolute left-0 top-0 border-0 " +
+            (isMobile ? "pointer-events-none" : "w-full h-[810px]")
           }
-          style={{ colorScheme: dark ? "dark" : "light" }}
+          style={{
+            colorScheme: dark ? "dark" : "light",
+            ...(isMobile
+              ? {
+                  width: 390,
+                  height: 844,
+                  transform: `scale(${mobileScale})`,
+                  transformOrigin: "top left",
+                }
+              : {}),
+          }}
         />
       ) : null}
       <div
