@@ -97,7 +97,7 @@ export function DownloadPage() {
     selected === "windows" ? copy.windowsDownload : selected === "android" ? copy.androidDownload : "";
 
   return (
-    <section className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-[min(100%-3rem,72rem)] flex-col items-center justify-center py-16 text-center">
+    <section className="mx-auto w-[min(100%-3rem,72rem)] py-12 text-center sm:py-16 md:py-20">
       <h1 className="sr-only">下载 knloop</h1>
       <p className="m-0 flex flex-wrap items-center justify-center gap-2 text-xs text-muted">
         <span>{copy.versionLabel}</span>
@@ -116,7 +116,7 @@ export function DownloadPage() {
       <div
         role="tablist"
         aria-label="选择平台"
-        className="mt-9 inline-flex rounded-xl border border-border bg-surface p-1"
+        className="mt-8 inline-flex rounded-xl border border-border bg-surface p-1"
       >
         {TABS.map(({ key, icon: Icon }) => {
           const active = selected === key;
@@ -145,7 +145,7 @@ export function DownloadPage() {
         })}
       </div>
 
-      <div className="mt-8 flex w-full max-w-3xl flex-col gap-6 rounded-2xl border border-border bg-surface/60 p-6 text-left sm:flex-row sm:items-center sm:justify-between sm:p-7">
+      <div className="mt-6 flex w-full max-w-3xl flex-col gap-6 rounded-2xl border border-border bg-surface/60 p-6 text-left sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div className="flex items-center gap-4">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-bg">
             {selected === "windows" ? (
@@ -200,7 +200,7 @@ export function DownloadPage() {
         )}
       </div>
 
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted">
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted">
         <span>
           {copy.webBefore}
           <a
