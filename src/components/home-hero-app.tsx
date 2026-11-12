@@ -92,6 +92,19 @@ export function HomeHeroApp() {
       doc.head.appendChild(style);
     }
     style.textContent = "html { zoom: " + zoom + "; }";
+
+    // 移动端预览去掉客户端底部的浮动 Tab bar：只展示文档本身。
+    if (isMobile) {
+      let chrome = doc.getElementById("hero-mobile-chrome") as HTMLStyleElement | null;
+      if (!chrome) {
+        chrome = doc.createElement("style");
+        chrome.id = "hero-mobile-chrome";
+        doc.head.appendChild(chrome);
+      }
+      chrome.textContent =
+        '[data-testid="mobile-tab-bar"] { display: none !important; }' +
+        " html { --knloop-mobile-tabbar-height: 0px !important; }";
+    }
   }, [isMobile]);
 
   const installInteractions = useCallback(() => {
