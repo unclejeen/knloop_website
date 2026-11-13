@@ -272,7 +272,7 @@ body {
   line-height: 0.82;
   letter-spacing: -0.02em;
   color: transparent;
-  -webkit-text-stroke: 2px color-mix(in srgb, var(--color-fg) 30%, transparent);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--color-blue) 72%, transparent);
   pointer-events: none;
   user-select: none;
   margin-bottom: clamp(1.25rem, 3.5vw, 2.5rem);
