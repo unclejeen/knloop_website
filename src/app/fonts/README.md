@@ -1,8 +1,13 @@
 # src/app/fonts
 
-两份自托管字体，产物都提交进仓库：构建和部署都不需要联网、不需要 ffmpeg。
+自托管字体产物都提交进仓库：构建和部署都不需要联网、不需要 ffmpeg。
 
-## display-cjk.woff2
+## display-cjk.woff2（当前未使用）
+
+> 展示标题已改成 Geist + 系统中文字体回退（和 vercel.com 一致），这个子集暂时不挂了；
+> 文件保留，方便以后需要固定中文标题字体时直接接回。
+
+
 
 首页**展示级标题**（hero 大标题、各区块大标题、收尾标题）里中文用的思源黑体子集。
 
@@ -37,3 +42,25 @@ Geist Mono 可变字体，**从 `node_modules/geist`（geist@1.7.2）里拷出�
   并同步上面说的那几个选项，再把这里的版本号改掉。
 - **怎么用**：`src/app/layout.tsx` 挂在 `<html>` 上的 `--font-geist-mono`，
   由 `globals.css` 的 `--font-mono` 排在系统等宽字体之前。
+
+## maple-mono-wordmark.woff2
+
+首页首屏那个巨大的 outline `knloop` 字标专用。
+
+- **字体**：Maple Mono（Copyright 2022 The Maple Mono Project Authors），SIL Open Font License 1.1，
+  许可证全文见同目录 `OFL-MapleMono.txt`。
+- **内容**：从 v7.9 的 `MapleMono[wght]-VF.woff2` 抽子集，只保留 `knloop` 6 个字形，
+  并把 `wght` 轴 pin 到 600，产物约 1.2 KB。
+- **怎么用**：`src/app/layout.tsx` 用 `next/font/local` 挂成 `--font-maple-mono`，
+  只在 `globals.css` 的 `.home-hero-wordmark` 里使用；`preload: false`，不挡首屏。
+- **重新生成**：用 `subset-font`：
+
+  ```js
+  subsetFont(readFileSync("MapleMono[wght]-VF.woff2"), "knloop", {
+    targetFormat: "woff2",
+    variationAxes: { wght: 600 },
+    preserveNameIds: [0, 1, 2, 3, 4, 5, 6],
+  });
+  ```
+
+  源文件与许可证来自 https://github.com/subframe7536/maple-font 。

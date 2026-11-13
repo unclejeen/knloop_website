@@ -266,11 +266,11 @@ body {
 /* 首屏巨大 outline 字标：参考 Next.js 首页的 NEXT，
    透明填充 + 1px 描边，底部渐隐；纯装饰，不参与交互。 */
 .home-hero-wordmark {
-  font-family: var(--font-display);
+  font-family: var(--font-maple-mono), ui-monospace, monospace;
   font-weight: 600;
-  font-size: clamp(5.5rem, 19vw, 18rem);
-  line-height: 0.78;
-  letter-spacing: -0.07em;
+  font-size: clamp(4.5rem, 15vw, 13.5rem);
+  line-height: 0.82;
+  letter-spacing: -0.02em;
   color: transparent;
   -webkit-text-stroke: 2px color-mix(in srgb, var(--color-fg) 30%, transparent);
   pointer-events: none;

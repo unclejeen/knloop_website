@@ -19,6 +19,22 @@ import { LocaleProvider } from "@/i18n/locale";
  * src/app/fonts/README.md），fallback / adjustFontFallback 和 geist
  * 自己那份定义逐字保持一致，所以回退渲染和以前一样。
  */
+/**
+ * Maple Mono（SIL OFL-1.1）：只给首页巨大的装饰字标 "knloop" 用。
+ * 从 MapleMono[wght]-VF.woff2 抽子集并 pin 到 wght=600，只有 6 个字形（约 1.2 KB），
+ * 不预载，字体加载失败时回退到系统等宽字体。
+ */
+const MapleMono = localFont({
+  src: "./fonts/maple-mono-wordmark.woff2",
+  weight: "600",
+  style: "normal",
+  display: "swap",
+  variable: "--font-maple-mono",
+  preload: false,
+  adjustFontFallback: false,
+  fallback: ["ui-monospace", "SFMono-Regular", "monospace"],
+});
+
 const GeistMono = localFont({
   src: "./fonts/geist-mono-variable.woff2",
   variable: "--font-geist-mono",
@@ -81,7 +97,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html
       lang="zh-CN"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={`${GeistSans.variable} ${GeistMono.variable} ${MapleMono.variable}`}
       suppressHydrationWarning
     >
       <body className="bg-bg text-fg antialiased">
