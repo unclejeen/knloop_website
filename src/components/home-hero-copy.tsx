@@ -1,6 +1,5 @@
 "use client";
 
-import { BrandLockup } from "@/components/brand-lockup";
 import { HeroActions } from "@/components/hero-actions";
 import { HomeSection } from "@/components/home-section";
 import { useHomeMessages } from "@/i18n/locale";
@@ -23,11 +22,7 @@ export function HomeHeroCopy() {
   return (
     <HomeSection id="home-hero-copy" className="border-t-0 py-0">
       <div className="mx-auto flex max-w-[52rem] flex-col items-center pb-[var(--home-copy-gap)] text-center">
-        {/* 品牌组合：同时是头部栏的观察点——它滚出视口，头部才滑下来 */}
-        <span data-header-sentinel className="inline-flex">
-          <BrandLockup size="lg" />
-        </span>
-        <h1 className="home-hero-title mt-14 text-balance md:mt-16">{hero.title}</h1>
+        <h1 className="home-hero-title text-balance">{hero.title}</h1>
         {/* 副标题：i18n 里的 lede，压一档字号、走 muted */}
         <p className="mt-5 max-w-[44rem] break-keep text-pretty text-sm leading-relaxed text-muted md:mt-6 md:text-base">
           {hero.lede}

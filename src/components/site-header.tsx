@@ -1,56 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { BrandLockup } from "@/components/brand-lockup";
 import { Search } from "@/components/search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageToggle } from "@/components/language-toggle";
 import { useLocale } from "@/i18n/locale";
-import { cn } from "@/lib/utils";
 
 /**
- * 站点头部。
- *
- * 首页顶部不显示头部：文案区里的品牌组合（带 data-header-sentinel）代替它。
- * 那个组合滚出视口后，头部从上方滑下来；回到顶部再滑回去。
- * 其它页面没有观察点，头部常驻。
- *
- * 初始状态按路由给（服务端渲染时就知道），避免首屏闪一下头部；
- * 观察用 IntersectionObserver，首帧会补一次当前相交状态。
+ * 站点头部：所有页面常驻，不再随首页滚动隐藏/滑入。
  */
-const ROUTES_WITH_SENTINEL = ["/"];
-
 export function SiteHeader() {
   const { t } = useLocale();
-  const pathname = usePathname();
-  const [visible, setVisible] = useState(() => !ROUTES_WITH_SENTINEL.includes(pathname));
-
-  useEffect(() => {
-    const sentinel = document.querySelector("[data-header-sentinel]");
-    if (!sentinel) {
-      setVisible(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setVisible(!entry.isIntersecting && entry.boundingClientRect.bottom <= 0),
-      { threshold: 0 },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [pathname]);
 
   return (
-    <header
-      inert={!visible}
-      className={cn(
-        "sticky top-0 z-50 border-b border-border/60 bg-bg/90 backdrop-blur-sm",
-        "transition-transform duration-300 ease-out motion-reduce:transition-none",
-        visible ? "translate-y-0" : "-translate-y-full",
-      )}
-    >
+    <header className="sticky top-0 z-50 border-b border-border/60 bg-bg/90 backdrop-blur-sm">
       <div className="flex h-14 items-center justify-between gap-4 px-3 sm:gap-6 sm:px-4">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
