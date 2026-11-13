@@ -382,6 +382,22 @@ body {
     0 32px 90px -46px rgba(0, 0, 0, 0.85);
 }
 
+/* 首页页头和 main 共用同一底色，避免顶部出现一条色差带。
+   页头在 main 外面，所以把 body 在首页时也刷成 main 的顶部色。 */
+body:has(.home-surface) {
+  background-color: #f8f8f7;
+}
+
+.dark body:has(.home-surface) {
+  background-color: #0a0a0a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) body:has(.home-surface) {
+    background-color: #0a0a0a;
+  }
+}
+
 /* ─── 页头：和 vercel.com 一样，顶部透明无边框 ─────────
    未滚动时背景完全透明、没有 border/阴影；滚过 96px 后加一层
    半透明背景 + 发丝阴影，保证导航可读。用 scroll-driven animation，
