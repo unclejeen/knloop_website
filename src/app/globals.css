@@ -263,6 +263,23 @@ body {
   }
 }
 
+/* 首屏巨大 outline 字标：参考 Next.js 首页的 NEXT，
+   透明填充 + 1px 描边，底部渐隐；纯装饰，不参与交互。 */
+.home-hero-wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(4.75rem, 15.5vw, 12.5rem);
+  line-height: 0.78;
+  letter-spacing: -0.07em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--color-fg) 28%, transparent);
+  pointer-events: none;
+  user-select: none;
+  margin-bottom: clamp(1.25rem, 3.5vw, 2.5rem);
+  -webkit-mask-image: linear-gradient(to bottom, #000 8%, rgba(0, 0, 0, 0.55) 68%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 8%, rgba(0, 0, 0, 0.55) 68%, transparent 100%);
+}
+
 /* ─── 首页 Hero 文案（logo 上方）──────────────────────
    标题是 display 档，字号同时看视口宽和高（矮屏不会顶到页面顶部）；
    字距按语言分档：拉丁收紧，中文回正——中文用负字距会挤在一起。
