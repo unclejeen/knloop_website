@@ -338,38 +338,62 @@ body {
   }
 }
 
-/* ─── 首页氛围层：暖白纸面 + 顶部微光 + 极淡点阵 ─────
+/* ─── 首页氛围层：磨砂渐变（sage / blush / sand）+ 细噪点 ─────
    只作用于首页 main；文档页保持纯白阅读。全部是 CSS，无图片/脚本。
-   点阵和光晕用 ::before 叠在内容下面，mask 往下淡出，避免整页发花。 */
+   色块用大半径 radial-gradient + blur 做“磨砂”，噪点用内联 SVG turbulence，
+   mask 往下淡出，避免整页发花。 */
 
 .home-surface {
   position: relative;
-  background: linear-gradient(180deg, #f7f7f6 0%, #fbfbfa 640px, #fbfbfa 100%);
+  overflow: clip;
+  background: #fbfbfa;
 }
 
 .dark .home-surface {
-  background: linear-gradient(180deg, #0c0c0d 0%, #0b0b0c 640px, #0b0b0c 100%);
+  background: #0b0b0c;
 }
 
 .home-surface::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto 0;
-  height: 780px;
+  inset: -120px -8% auto;
+  height: 900px;
   z-index: 0;
   pointer-events: none;
-  background-image:
-    radial-gradient(ellipse 72% 58% at 50% 0%, rgba(23, 23, 23, 0.055), transparent 68%),
-    radial-gradient(circle at center, rgba(23, 23, 23, 0.055) 1px, transparent 1.3px);
-  background-size: auto, 28px 28px;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 86%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 86%);
+  background:
+    radial-gradient(38% 52% at 16% 6%, rgba(157, 181, 166, 0.42), transparent 70%),
+    radial-gradient(40% 56% at 84% 2%, rgba(198, 158, 172, 0.34), transparent 72%),
+    radial-gradient(52% 50% at 48% 30%, rgba(214, 196, 170, 0.3), transparent 74%);
+  filter: blur(74px);
+  transform: translateZ(0);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 84%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 84%);
 }
 
 .dark .home-surface::before {
-  background-image:
-    radial-gradient(ellipse 72% 58% at 50% 0%, rgba(255, 255, 255, 0.06), transparent 68%),
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.06) 1px, transparent 1.3px);
+  background:
+    radial-gradient(38% 52% at 16% 6%, rgba(94, 122, 104, 0.22), transparent 70%),
+    radial-gradient(40% 56% at 84% 2%, rgba(122, 82, 98, 0.2), transparent 72%),
+    radial-gradient(52% 50% at 48% 30%, rgba(112, 97, 73, 0.16), transparent 74%);
+}
+
+.home-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 900px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 88%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 88%);
+}
+
+.dark .home-surface::after {
+  opacity: 0.24;
+  mix-blend-mode: overlay;
 }
 
 .home-surface > * {
