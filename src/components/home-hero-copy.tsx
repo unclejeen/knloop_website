@@ -21,14 +21,14 @@ export function HomeHeroCopy() {
 
   return (
     <HomeSection id="home-hero-copy" className="border-t-0 py-0">
-      <div className="mx-auto flex max-w-[52rem] flex-col items-center pb-[var(--home-copy-gap)] text-center">
+      <div className="mx-auto flex max-w-[72rem] flex-col items-center pb-[var(--home-copy-gap)] text-center">
         {/* 巨大的 outline 字标：只做装饰，不参与阅读/交互 */}
         <div aria-hidden="true" className="home-hero-wordmark select-none">
           knloop
         </div>
         <h1 className="home-hero-title text-balance">{hero.title}</h1>
         {/* 副标题：i18n 里的 lede，压一档字号、走 muted */}
-        <p className="mt-5 max-w-[44rem] break-keep text-pretty text-sm leading-relaxed text-muted md:mt-6 md:text-base">
+        <p className="mt-5 w-full max-w-[22rem] break-keep text-pretty text-[13px] leading-relaxed text-muted sm:max-w-[44rem] sm:text-sm md:mt-6 md:max-w-none md:text-base lg:whitespace-nowrap">
           {hero.lede}
         </p>
         {/* 下载按钮：按平台换链接，见表 src/lib/downloads.ts；
