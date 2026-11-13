@@ -268,11 +268,11 @@ body {
 .home-hero-wordmark {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(4.75rem, 15.5vw, 12.5rem);
+  font-size: clamp(5.5rem, 19vw, 18rem);
   line-height: 0.78;
   letter-spacing: -0.07em;
   color: transparent;
-  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--color-fg) 28%, transparent);
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--color-fg) 30%, transparent);
   pointer-events: none;
   user-select: none;
   margin-bottom: clamp(1.25rem, 3.5vw, 2.5rem);
