@@ -14,8 +14,8 @@ export function SiteHeader() {
   const { t } = useLocale();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-bg/90 backdrop-blur-sm">
-      <div className="flex h-14 items-center justify-between gap-4 px-3 sm:gap-6 sm:px-4">
+    <header className="site-header sticky top-0 z-50">
+      <div className="flex h-16 items-center justify-between gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center">
             <BrandLockup />

@@ -246,11 +246,8 @@ body {
   --home-copy-top: clamp(2rem, 9vh, 6rem); /* 头部 → 文案顶边 */
   --home-copy-gap: clamp(3rem, 9vh, 6rem); /* 文案底边 → 预览顶边 */
 
-  /* 展示级标题（hero / 各区块大标题 / 收尾）的字体栈：
-     Latin 走站点 Geist，中文走自托管的思源黑体子集（src/app/fonts/display-cjk.woff2），
-     子集里没有的字回退到本机思源黑体 / 苹方 / 微软雅黑。 */
-  --font-display: var(--font-geist-sans), var(--font-display-cjk), "Source Han Sans SC",
-    "Source Han Sans CN", "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+  /* 展示级标题和正文使用同一套字体：Geist（自托管）+ 系统中文字体回退。 */
+  --font-display: var(--font-sans);
 }
 
 @supports (height: 100dvh) {
@@ -271,20 +268,16 @@ body {
    字距按语言分档：拉丁收紧，中文回正——中文用负字距会挤在一起。
    :lang 由 LocaleProvider 写在 <html> 上。
 
-   字体按字形回退，所以混排里只有中文会落到思源黑体上：
-     Latin → Geist（站点字体）
-     中文  → 自托管的思源黑体子集（约 2 KB，见 src/app/fonts/），
-             子集里没有的字回退到本机思源黑体 / 苹方 / 微软雅黑
-   字重 500：display 尺寸下不用给到 bold，机器上装的是可变字体，
-   能取到真实字重，font-synthesis: none 再兜一层假粗体。 */
+   字体按字形回退：Latin 走 Geist，中文回退到系统黑体（与 vercel.com 一致）。
+   字重 400，贴近 vercel.com 的大标题；font-synthesis: none 避免中文假粗体。 */
 
 .home-hero-title {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
   font-synthesis: none;
   font-size: clamp(2rem, min(5.4vw, 7.5vh), 3.75rem);
   line-height: 1.12;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
 }
 
 :lang(zh) .home-hero-title {
@@ -295,7 +288,7 @@ body {
    字距拉丁收紧、中文回正。 */
 .display-title {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 400;
   font-synthesis: none;
   letter-spacing: -0.045em;
 }
@@ -387,4 +380,30 @@ body {
   box-shadow:
     var(--shadow-soft),
     0 32px 90px -46px rgba(0, 0, 0, 0.85);
+}
+
+/* ─── 页头：和 vercel.com 一样，顶部透明无边框 ─────────
+   未滚动时背景完全透明、没有 border/阴影；滚过 96px 后加一层
+   半透明背景 + 发丝阴影，保证导航可读。用 scroll-driven animation，
+   无 JS；不支持该特性的浏览器保持透明。 */
+
+.site-header {
+  background: transparent;
+  box-shadow: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  .site-header {
+    animation: site-header-surface linear both;
+    animation-timeline: scroll();
+    animation-range: 0 96px;
+  }
+}
+
+@keyframes site-header-surface {
+  to {
+    background-color: color-mix(in srgb, var(--color-bg) 84%, transparent);
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--color-border) 55%, transparent);
+    backdrop-filter: blur(12px);
+  }
 }

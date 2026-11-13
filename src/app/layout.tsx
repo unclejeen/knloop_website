@@ -8,20 +8,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/i18n/locale";
 
 /**
- * 展示级标题的中文子集字体：思源黑体（Noto Sans SC，SIL OFL-1.1），只保留
- * home.hero.title / home.cta.title / home.sections.*.title 里出现的汉字。
- * 这些文案或字体改了就跑一次 `node scripts/generate-display-subset.mjs` 重新生成
- * （缺字会按 --font-display 的字栈回退到系统黑体）。
- */
-const DisplayCjk = localFont({
-  src: "./fonts/display-cjk.woff2",
-  weight: "500",
-  style: "normal",
-  display: "swap",
-  variable: "--font-display-cjk",
-});
-
-/**
  * Geist Mono：不在首屏的关键路径上，所以不预载。
  *
  * geist 包给的 GeistMono 是 preload: true，会和 Geist Sans、中文子集一起
@@ -95,7 +81,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   return (
     <html
       lang="zh-CN"
-      className={`${GeistSans.variable} ${GeistMono.variable} ${DisplayCjk.variable}`}
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
       <body className="bg-bg text-fg antialiased">
