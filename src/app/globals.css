@@ -338,62 +338,41 @@ body {
   }
 }
 
-/* ─── 首页氛围层：磨砂渐变（sage / blush / sand）+ 细噪点 ─────
+/* ─── 首页氛围层：Vercel 风格（黑白 + 细网格 + 顶部聚光） ─────
    只作用于首页 main；文档页保持纯白阅读。全部是 CSS，无图片/脚本。
-   色块用大半径 radial-gradient + blur 做“磨砂”，噪点用内联 SVG turbulence，
-   mask 往下淡出，避免整页发花。 */
+   64px 发丝线网格 + 顶部径向微光，mask 向下淡出；暗色是白线微光。 */
 
 .home-surface {
   position: relative;
   overflow: clip;
-  background: #fbfbfa;
+  background: #ffffff;
 }
 
 .dark .home-surface {
-  background: #0b0b0c;
+  background: #0a0a0a;
 }
 
 .home-surface::before {
   content: "";
   position: absolute;
-  inset: -120px -8% auto;
-  height: 900px;
+  inset: 0 0 auto;
+  height: 860px;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(38% 52% at 16% 6%, rgba(157, 181, 166, 0.42), transparent 70%),
-    radial-gradient(40% 56% at 84% 2%, rgba(198, 158, 172, 0.34), transparent 72%),
-    radial-gradient(52% 50% at 48% 30%, rgba(214, 196, 170, 0.3), transparent 74%);
-  filter: blur(74px);
-  transform: translateZ(0);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 84%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 42%, transparent 84%);
+  background-image:
+    radial-gradient(ellipse 62% 46% at 50% -8%, rgba(0, 0, 0, 0.06), transparent 70%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: auto, 64px 64px, 64px 64px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
 }
 
 .dark .home-surface::before {
-  background:
-    radial-gradient(38% 52% at 16% 6%, rgba(94, 122, 104, 0.22), transparent 70%),
-    radial-gradient(40% 56% at 84% 2%, rgba(122, 82, 98, 0.2), transparent 72%),
-    radial-gradient(52% 50% at 48% 30%, rgba(112, 97, 73, 0.16), transparent 74%);
-}
-
-.home-surface::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 900px;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.16;
-  mix-blend-mode: soft-light;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 88%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 45%, transparent 88%);
-}
-
-.dark .home-surface::after {
-  opacity: 0.24;
-  mix-blend-mode: overlay;
+  background-image:
+    radial-gradient(ellipse 62% 46% at 50% -8%, rgba(255, 255, 255, 0.055), transparent 70%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
 }
 
 .home-surface > * {
