@@ -1,6 +1,6 @@
 # knloop · Agent 原生知识库
 
-> 本地优先的 Markdown 知识库。文件留在自己的文件夹里，人和 Agent 共用同一份。
+> 探索 Agent 原生的知识管理：以人机对齐为目标，内容用 .md 存储；不绑定人类用户，对 Agent 更友好。
 
 knloop 会继续探索更适合与 Agent 交互的方案。
 
