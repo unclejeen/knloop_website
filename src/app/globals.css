@@ -263,22 +263,11 @@ body {
   }
 }
 
-/* 首屏巨大 outline 字标：参考 Next.js 首页的 NEXT，
-   透明填充 + 1px 描边，底部渐隐；纯装饰，不参与交互。 */
-.home-hero-wordmark {
-  --wordmark-color: var(--color-fg);
-  font-family: var(--font-maple-mono), ui-monospace, monospace;
-  font-weight: 600;
-  font-size: clamp(4.5rem, 15vw, 13.5rem);
-  line-height: 0.82;
-  letter-spacing: -0.02em;
-  color: transparent;
-  -webkit-text-stroke: 2px color-mix(in srgb, var(--wordmark-color) 72%, transparent);
-  pointer-events: none;
-  user-select: none;
-  margin-bottom: clamp(1.25rem, 3.5vw, 2.5rem);
-  -webkit-mask-image: linear-gradient(to bottom, #000 8%, rgba(0, 0, 0, 0.55) 68%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 8%, rgba(0, 0, 0, 0.55) 68%, transparent 100%);
+/* 首屏巨大的 knloop mark：只做装饰，不参与阅读/交互。 */
+.home-hero-mark {
+  width: clamp(14rem, 32vw, 28rem);
+  height: auto;
+  margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
 }
 
 /* ─── 首页 Hero 文案（logo 上方）──────────────────────
