@@ -5,9 +5,9 @@ import { HomeHeroApp } from "@/components/home-hero-app";
  * 逻辑见 home-hero-app.tsx），不是图片、也不是仿写的组件。
  *
  * 尺寸：
- *   · 桌面（>=768px）：外框整宽、最宽 72rem（1152px），16:9，直接显示 WebP 主图。
- *   · 移动（<768px）：和客户端一致的 390:844 比例，20rem（320px）宽圆角卡片，
- *     左右留边；<picture> 自动切到移动版图片。
+ *   · 桌面（>=768px）：外框整宽、最宽 72rem（1152px），16:9。
+ *   · 移动（<768px）：和客户端一致的 390:844 比例，20rem（320px）宽圆角卡片，左右留边。
+ *   主图是服务端直出的静态 HTML/CSS 客户端界面（见 home-hero-app.tsx），可原生滚动。
  */
 export function HomeHero() {
   return (
