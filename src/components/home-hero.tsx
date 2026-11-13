@@ -12,7 +12,7 @@ import { HomeHeroApp } from "@/components/home-hero-app";
 export function HomeHero() {
   return (
     <section aria-label="Hero" className="w-full shrink-0 px-4 pb-10 sm:pb-16 md:px-3 lg:px-6">
-      <div className="relative mx-auto aspect-[390/844] w-full max-w-[20rem] overflow-hidden rounded-2xl border border-border bg-bg shadow-soft md:aspect-video md:max-w-[72rem]">
+      <div className="home-hero-card relative mx-auto aspect-[390/844] w-full max-w-[20rem] overflow-hidden rounded-2xl border border-border bg-bg md:aspect-video md:max-w-[72rem]">
         <HomeHeroApp />
       </div>
     </section>

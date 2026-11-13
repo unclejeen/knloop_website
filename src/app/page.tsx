@@ -11,7 +11,7 @@ export const metadata = {
 export default function HomePage() {
   return (
     <>
-      <main className="flex min-h-dvh flex-col">
+      <main className="home-surface flex min-h-dvh flex-col">
         <div className="shrink-0 pt-[var(--home-copy-top)]">
           <HomeHeroCopy />
         </div>
