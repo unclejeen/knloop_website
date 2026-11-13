@@ -32,9 +32,9 @@
       "comingSoon": "即将推出",
       "connecting": "正在连接…",
       "installHint": "更多版本",
-      "webCta": "免费使用 knloop",
+      "webCta": "开始使用",
       "clientDownload": "下载客户端",
-      "localNote": "浏览器直接打开 · 数据仍保存在本地文件夹"
+      "localNote": "探索 Agent 原生的知识管理：以人机对齐为目标，内容用 .md 存储；不绑定人类用户，对 Agent 更友好。"
     },
     "flow": [
       {
