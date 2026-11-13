@@ -171,24 +171,11 @@ export function Search() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="hidden cursor-pointer items-center gap-2 rounded-md border border-border bg-surface-muted px-3 py-1.5 text-sm text-muted transition-colors hover:border-fg/25 hover:text-fg sm:flex"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        {t("search.button")}
-        <kbd className="pointer-events-none ml-1 inline-flex items-center gap-0.5 rounded border border-border bg-bg px-1.5 py-0.5 font-mono text-[10px] text-muted">
-          <span>&#8984;</span>K
-        </kbd>
-      </button>
-
-      <button
-        onClick={() => setOpen(true)}
-        className="flex cursor-pointer items-center text-muted transition-colors hover:text-fg sm:hidden"
+        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-border bg-bg text-muted transition-colors hover:bg-surface-muted hover:text-fg"
         aria-label={t("search.button")}
+        title={t("search.button")}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.3-4.3" />
         </svg>
