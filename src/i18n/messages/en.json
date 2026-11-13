@@ -25,7 +25,7 @@
   "home": {
     "hero": {
       "title": "An agent-native knowledge base",
-      "lede": "A local-first Markdown knowledge base. Files stay in your folder, shared by you and your agents.",
+      "lede": "Explore agent-native knowledge management: built for human–agent alignment, stored as plain .md, not tied to human users, and friendlier to agents.",
       "note": "knloop will keep exploring better ways to work alongside agents.",
       "download": "Download for {platform}",
       "downloadAll": "Other platforms",
@@ -34,7 +34,7 @@
       "installHint": "More versions",
       "webCta": "Get started",
       "clientDownload": "Download app",
-      "localNote": "Explore agent-native knowledge management: aligned with how people and agents work together, stored as plain .md, not tied to human users, and friendlier to agents."
+      "localNote": "Install knloop, connect your agents, and try a better way of working."
     },
     "flow": [
       {

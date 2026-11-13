@@ -25,7 +25,7 @@
   "home": {
     "hero": {
       "title": "Agent 原生知识库",
-      "lede": "本地优先的 Markdown 知识库。文件留在自己的文件夹里，人和 Agent 共用同一份。",
+      "lede": "探索 Agent 原生的知识管理：以人机对齐为目标，内容用 .md 存储；不绑定人类用户，对 Agent 更友好。",
       "note": "knloop 会继续探索更适合与 Agent 交互的方案。",
       "download": "下载 {platform} 版",
       "downloadAll": "其它平台下载",
@@ -34,7 +34,7 @@
       "installHint": "更多版本",
       "webCta": "开始使用",
       "clientDownload": "下载客户端",
-      "localNote": "探索 Agent 原生的知识管理：以人机对齐为目标，内容用 .md 存储；不绑定人类用户，对 Agent 更友好。"
+      "localNote": "安装 knloop，连接你的 Agent，尝试更好的工作方式。"
     },
     "flow": [
       {
