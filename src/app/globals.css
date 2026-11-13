@@ -385,23 +385,30 @@ body {
 /* 首页页头和 main 共用同一底色，避免顶部出现一条色差带。
    页头在 main 外面，所以把 body 在首页时也刷成 main 的顶部色。 */
 body:has(.home-surface) {
+  --header-surface: #f8f8f7;
   background-color: #f8f8f7;
 }
 
 .dark body:has(.home-surface) {
+  --header-surface: #0a0a0a;
   background-color: #0a0a0a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) body:has(.home-surface) {
+    --header-surface: #0a0a0a;
     background-color: #0a0a0a;
   }
 }
 
 /* ─── 页头：和 vercel.com 一样，顶部透明无边框 ─────────
    未滚动时背景完全透明、没有 border/阴影；滚过 96px 后加一层
-   半透明背景 + 发丝阴影，保证导航可读。用 scroll-driven animation，
-   无 JS；不支持该特性的浏览器保持透明。 */
+   与页面同色的半透明背景，保证导航可读但不出现色差带。
+   用 scroll-driven animation，无 JS；不支持该特性的浏览器保持透明。 */
+
+:root {
+  --header-surface: var(--color-bg);
+}
 
 .site-header {
   background: transparent;
@@ -418,8 +425,7 @@ body:has(.home-surface) {
 
 @keyframes site-header-surface {
   to {
-    background-color: color-mix(in srgb, var(--color-bg) 84%, transparent);
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--color-border) 55%, transparent);
-    backdrop-filter: blur(12px);
+    background-color: color-mix(in srgb, var(--header-surface) 90%, transparent);
+    backdrop-filter: blur(16px);
   }
 }
