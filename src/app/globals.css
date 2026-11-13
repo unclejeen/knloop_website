@@ -412,6 +412,7 @@ body:has(.home-surface) {
 
 .site-header {
   background: transparent;
+  border-bottom: 1px solid transparent;
   box-shadow: none;
 }
 
@@ -426,6 +427,7 @@ body:has(.home-surface) {
 @keyframes site-header-surface {
   to {
     background-color: color-mix(in srgb, var(--header-surface) 90%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--color-border) 70%, transparent);
     backdrop-filter: blur(16px);
   }
 }
