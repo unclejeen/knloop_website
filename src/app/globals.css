@@ -266,7 +266,7 @@ body {
 /* 首屏巨大 outline 字标：参考 Next.js 首页的 NEXT，
    透明填充 + 1px 描边，底部渐隐；纯装饰，不参与交互。 */
 .home-hero-wordmark {
-  --wordmark-color: #b45309;
+  --wordmark-color: var(--color-fg);
   font-family: var(--font-maple-mono), ui-monospace, monospace;
   font-weight: 600;
   font-size: clamp(4.5rem, 15vw, 13.5rem);
@@ -279,17 +279,6 @@ body {
   margin-bottom: clamp(1.25rem, 3.5vw, 2.5rem);
   -webkit-mask-image: linear-gradient(to bottom, #000 8%, rgba(0, 0, 0, 0.55) 68%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 8%, rgba(0, 0, 0, 0.55) 68%, transparent 100%);
-}
-
-/* 暗色下字标换成更亮的琥珀色 */
-.dark .home-hero-wordmark {
-  --wordmark-color: #f59e0b;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) .home-hero-wordmark {
-    --wordmark-color: #f59e0b;
-  }
 }
 
 /* ─── 首页 Hero 文案（logo 上方）──────────────────────
