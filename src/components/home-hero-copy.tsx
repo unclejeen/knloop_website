@@ -25,7 +25,7 @@ export function HomeHeroCopy() {
         {/* 巨大的品牌 mark：只做装饰，不参与阅读/交互 */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/knloop-logo.svg"
+          src="/knloop-logo-outline.svg"
           alt=""
           aria-hidden="true"
           draggable={false}
