@@ -338,14 +338,14 @@ body {
   }
 }
 
-/* ─── 首页氛围层：Vercel 风格（黑白 + 细网格 + 顶部聚光） ─────
-   只作用于首页 main；文档页保持纯白阅读。全部是 CSS，无图片/脚本。
-   64px 发丝线网格 + 顶部径向微光，mask 向下淡出；暗色是白线微光。 */
+/* ─── 首页氛围层：Vercel 最新版风格（近白 + 留白 + 柔光） ─────
+   参考当前 vercel.com：纯色近白底，无网格/噪点，只保留一层非常淡的径向柔光。
+   只作用于首页 main；文档页保持纯白阅读。全部是 CSS，无图片/脚本。 */
 
 .home-surface {
   position: relative;
   overflow: clip;
-  background: #ffffff;
+  background: linear-gradient(180deg, #f8f8f7 0%, #fafafa 620px, #fafafa 100%);
 }
 
 .dark .home-surface {
@@ -355,24 +355,21 @@ body {
 .home-surface::before {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  height: 860px;
+  top: -140px;
+  left: 50%;
+  width: min(1120px, 92vw);
+  height: 760px;
   z-index: 0;
+  transform: translateX(-50%);
   pointer-events: none;
-  background-image:
-    radial-gradient(ellipse 62% 46% at 50% -8%, rgba(0, 0, 0, 0.06), transparent 70%),
-    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-  background-size: auto, 64px 64px, 64px 64px;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+  background: radial-gradient(ellipse 48% 46% at 50% 42%, rgba(255, 255, 255, 0.9), transparent 72%);
+  filter: blur(56px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 90%);
 }
 
 .dark .home-surface::before {
-  background-image:
-    radial-gradient(ellipse 62% 46% at 50% -8%, rgba(255, 255, 255, 0.055), transparent 70%),
-    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background: radial-gradient(ellipse 48% 46% at 50% 42%, rgba(255, 255, 255, 0.05), transparent 72%);
 }
 
 .home-surface > * {
