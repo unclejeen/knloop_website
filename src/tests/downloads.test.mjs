@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import {
@@ -7,10 +9,14 @@ import {
   GH_PROXIES,
   GH_PROXY,
   LINUX_DOWNLOAD_TARGET,
+  RELEASES_API,
   RELEASES_API_URL,
+  RELEASES_PAGE_URL,
   detectPlatform,
   fetchLatestDownloadUrls,
   isAcceleratedUrl,
+  isProxyableTarget,
+  isReleaseAssetUrl,
   mirrorUrls,
   pickAssetUrl,
   pickReachableDownloadUrl,
@@ -155,8 +161,17 @@ describe("release asset picking", () => {
     assert.match(pickAssetUrl(release871, "android"), /knloop_0\.1\.0-871_android-arm64-v8a\.apk$/);
   });
 
-  it("runs asset urls through the accelerator", () => {
-    assert.equal(proxyUrl("https://github.com/a/b"), `${GH_PROXY}/https://github.com/a/b`);
+  it("runs release assets and the GitHub API through the accelerator", () => {
+    assert.equal(proxyUrl(RAW_WINDOWS), WINDOWS_URL);
+    assert.equal(proxyUrl(RELEASES_API), RELEASES_API_URL);
+  });
+
+  it("refuses to proxy a GitHub web page (that would land on the accelerator site)", () => {
+    // 代理 GitHub 网页时 gh-proxy 会回自己的落地页；这类地址一律不许套加速前缀。
+    assert.throws(() => proxyUrl(`https://github.com/unclejeen/knloop_website/releases/latest`), /加速前缀/);
+    assert.throws(() => proxyUrl("https://github.com/unclejeen/knloop_website"), /加速前缀/);
+    assert.throws(() => proxyUrl("/install"), /加速前缀/);
+    assert.throws(() => proxyUrl(RELEASES_PAGE_URL), /加速前缀/);
   });
 });
 
@@ -311,6 +326,27 @@ describe("accelerator mirrors", () => {
     assert.equal(tried.length, 2);
   });
 
+  it("skips a line that answers with an HTML page instead of the file", async () => {
+    const assetUrl = `${GH_PROXY}/${RAW_WINDOWS}`;
+    const picked = await pickReachableDownloadUrl(assetUrl, {
+      fetchImpl: async (url) =>
+        String(url).startsWith(`${GH_PROXIES[1]}/`)
+          ? { ok: true, headers: { get: () => "application/octet-stream" } }
+          : { ok: true, headers: { get: () => "text/html; charset=utf-8" } },
+    });
+
+    // 200 但回的是网页 = 加速站自己的页面，不能导航过去；换下一条真正回文件的线路
+    assert.equal(picked, `${GH_PROXIES[1]}/${RAW_WINDOWS}`);
+  });
+
+  it("goes back to the GitHub-original file when every line answers HTML", async () => {
+    const assetUrl = `${GH_PROXY}/${RAW_WINDOWS}`;
+    const picked = await pickReachableDownloadUrl(assetUrl, {
+      fetchImpl: async () => ({ ok: true, headers: { get: () => "text/html" } }),
+    });
+    assert.equal(picked, RAW_WINDOWS);
+  });
+
   it("falls back to the GitHub url when no line answers", async () => {
     const assetUrl = `${GH_PROXY}/${RAW_WINDOWS}`;
     const tried = [];
@@ -331,10 +367,97 @@ describe("accelerator mirrors", () => {
     assert.equal(isAcceleratedUrl("/install"), false);
   });
 
+  it("never navigates to an accelerated web page: it returns the GitHub original", async () => {
+    const proxiedPage = `${GH_PROXY}/${RELEASES_PAGE_URL}`;
+    let probes = 0;
+    const picked = await pickReachableDownloadUrl(proxiedPage, {
+      fresh: true,
+      fetchImpl: async () => {
+        probes += 1;
+        return { ok: true };
+      },
+    });
+
+    assert.equal(picked, "https://github.com/unclejeen/knloop_website/releases/latest");
+    assert.equal(probes, 0, "代理网页不该被探测，更不该被导航过去");
+  });
+
   it("tells accelerated links apart from site links", () => {
     for (const proxy of GH_PROXIES) {
       assert.equal(isAcceleratedUrl(`${proxy}/${RAW_WINDOWS}`), true);
     }
     assert.equal(isAcceleratedUrl("https://github.com/a/b/releases/download/1/x.exe"), false);
+  });
+});
+
+/** 递归收集 src 下的源码（测试目录除外：测试要造「错误形态」的链接做断言）。 */
+function sourceFiles(dir) {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "tests") continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...sourceFiles(full));
+    else if (/\.(?:ts|tsx)$/.test(entry.name)) files.push(full);
+  }
+  return files;
+}
+
+describe("accelerator prefix is never hand-concatenated onto a URL", () => {
+  it("always builds accelerated links through proxyUrl", () => {
+    const srcRoot = join(import.meta.dirname, "..");
+    const offenders = [];
+    for (const file of sourceFiles(srcRoot)) {
+      // 手拼 `${GH_PROXY}/https://...` 会绕过 proxyUrl 的守卫；网页一旦套上加速前缀，
+      // 点下去就是加速站自己的落地页——这正是「跳到加速站点」的写法。
+      if (/\$\{GH_PROXY\s*\}\/https:\/\//.test(readFileSync(file, "utf8"))) {
+        offenders.push(file.replace(srcRoot, "src"));
+      }
+    }
+    assert.deepEqual(offenders, [], "这些文件绕过 proxyUrl 手拼了加速前缀");
+  });
+});
+
+describe("never link the accelerator's own pages", () => {
+  it("keeps the releases page on github.com, unaccelerated", () => {
+    assert.equal(RELEASES_PAGE_URL, "https://github.com/unclejeen/knloop_website/releases/latest");
+    assert.equal(isAcceleratedUrl(RELEASES_PAGE_URL), false);
+  });
+
+  it("ships no accelerated GitHub web page in the static export (when out/ exists)", () => {
+    // 构建产物是最终发给用户的东西：这里直接扫 out/*.html，防止有人手拼前缀又漏进来。
+    // 没构建（out/ 不存在）时跳过，不拖慢纯源码测试。
+    const outDir = join(import.meta.dirname, "..", "..", "out");
+    const htmlFiles = [];
+    try {
+      const walkHtml = (dir) => {
+        for (const entry of readdirSync(dir, { withFileTypes: true })) {
+          const full = join(dir, entry.name);
+          if (entry.isDirectory()) walkHtml(full);
+          else if (entry.name.endsWith(".html")) htmlFiles.push(full);
+        }
+      };
+      walkHtml(outDir);
+    } catch {
+      return; // 没有构建产物：跳过
+    }
+
+    const offenders = [];
+    for (const file of htmlFiles) {
+      const html = readFileSync(file, "utf8");
+      // 允许：release 资产（文件下载）。禁止：任何其它 GitHub 网页被套上加速前缀。
+      const matches = html.match(/https:\/\/(?:v4\.|v6\.|cdn\.)?gh-proxy\.(?:org|com)\/https:\/\/github\.com\/(?!unclejeen\/knloop_website\/releases\/download\/)/g);
+      if (matches) offenders.push(`${file.replace(outDir, "out")}: ${matches.join(", ")}`);
+    }
+    assert.deepEqual(offenders, [], "静态导出里出现了「加速前缀 + GitHub 网页」，点下去就是加速站落地页");
+  });
+
+  it("only treats release assets and the GitHub API as proxyable", () => {
+    assert.equal(isReleaseAssetUrl(RAW_WINDOWS), true);
+    assert.equal(isReleaseAssetUrl(WINDOWS_URL), false, "已经套了前缀的链接不是资产直链");
+    assert.equal(isReleaseAssetUrl(RELEASES_PAGE_URL), false);
+    assert.equal(isProxyableTarget(RAW_WINDOWS), true);
+    assert.equal(isProxyableTarget(RELEASES_API), true);
+    assert.equal(isProxyableTarget(RELEASES_PAGE_URL), false);
+    assert.equal(isProxyableTarget(`https://github.com/unclejeen/knloop_website`), false);
   });
 });

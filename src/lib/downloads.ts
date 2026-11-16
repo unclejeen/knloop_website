@@ -34,13 +34,52 @@ export const GH_PROXY = GH_PROXIES[0];
 export const RELEASES_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 
 /** 最新 release 的 API（经主线路加速），返回 { tag_name, assets: [{ name, browser_download_url }] } */
-export const RELEASES_API_URL = `${GH_PROXY}/${RELEASES_API}`;
+export const RELEASES_API_URL = proxyUrl(RELEASES_API);
 
-/** 最新 release 的网页版；地址永远指向最新版本，安装说明页用它当链接。 */
-export const RELEASES_PAGE_URL = `${GH_PROXY}/https://github.com/${GITHUB_REPO}/releases/latest`;
+/**
+ * 最新 release 的网页版：GitHub 原址，**绝不套加速前缀**。
+ * 下载页的「GitHub Releases」小链接用它。
+ *
+ * 为什么不套：gh-proxy 只该代理「文件」——release 资产直链（浏览器直接下载文件）和
+ * GitHub API 的 JSON（用 fetch 读，不进地址栏）。代理 GitHub 的**网页**时，它会 301 到
+ * gh-proxy.com 并返回加速站自己的落地页（标题是「GitHub加速下载代理」）。历史上这里是
+ * 把加速前缀拼在 releases 网页地址前面的，下载页在 release 还没拉回来、或者拉取失败时
+ * 拿它当下载按钮的 href——移动端网络慢，用户很容易点中，表现就是「偶尔跳转到加速站点」。
+ * 现在由 proxyUrl 的守卫兜住这一类错误。
+ */
+export const RELEASES_PAGE_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
 
-/** 给 GitHub 地址套上加速前缀；proxy 默认主线路。 */
+/** 是不是 release 资产（文件）的 GitHub 直链。 */
+export function isReleaseAssetUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "github.com" && parsed.pathname.includes("/releases/download/");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * gh-proxy 能不能安全代理这个地址：只有 release 资产（浏览器直接下载文件）和 GitHub API
+ * 的 JSON（fetch 读取，不进入地址栏）。其余一律不行——代理网页会落到加速站自己的落地页。
+ */
+export function isProxyableTarget(url: string): boolean {
+  try {
+    return isReleaseAssetUrl(url) || new URL(url).hostname === "api.github.com";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 给 GitHub 地址套上加速前缀；proxy 默认主线路。
+ * 只接受 release 资产与 GitHub API：别的地址套上去就是让用户打开加速站网页，直接抛错，
+ * 让写错的链接在开发/测试阶段就炸掉（绝对不允许把用户丢到加速站点）。
+ */
 export function proxyUrl(url: string, proxy: string = GH_PROXY): string {
+  if (!isProxyableTarget(url)) {
+    throw new Error(`不是 release 资产 / GitHub API，不能套加速前缀（会跳转到加速站点）：${url}`);
+  }
   return `${proxy}/${url}`;
 }
 
@@ -301,10 +340,19 @@ export type PickReachableOptions = {
 /** 探过的结果记下来：同一页面里首屏 + CTA 两个按钮只探一次。 */
 const reachableCache = new Map<string, Promise<string>>();
 
+/** 响应是不是一张网页（而不是文件）。加速线路抽风时可能回一张 HTML 错误页。 */
+function isHtmlResponse(response: Response): boolean {
+  const contentType = response.headers?.get?.("content-type") ?? "";
+  return contentType.toLowerCase().includes("text/html");
+}
+
 /**
- * 一条线路上的资产真的能下吗？HEAD 一次，2xx 算通。
+ * 一条线路上的资产真的能下吗？HEAD 一次，2xx 且不是网页才算通。
  * 一条都不通就返回 GitHub 原址：加速线路全挂了还有 GitHub 兜底，
  * 不该把用户丢在一张 504 上，更不该让他自己去换域名。
+ *
+ * 之所以要看 Content-Type：个别线路/风控页会 200 回一张 HTML（加速站自己的页面），
+ * 真导航过去用户就停在加速站点上了。这种线路一律当「不通」，换下一条。
  */
 async function probeMirrors(url: string, raw: string, options: PickReachableOptions): Promise<string> {
   const { fetchImpl = fetch, timeoutMs = PROBE_TIMEOUT_MS } = options;
@@ -317,7 +365,7 @@ async function probeMirrors(url: string, raw: string, options: PickReachableOpti
         method: "HEAD",
         signal: AbortSignal.timeout(timeoutMs),
       });
-      if (response.ok) return candidate;
+      if (response.ok && !isHtmlResponse(response)) return candidate;
     } catch {
       // 探测本身失败就当这条线路不可用，继续试下一条
     }
@@ -337,11 +385,17 @@ export function isAcceleratedUrl(url: string): boolean {
  * 下载链接之前都先现测一次（传 fresh，见 components/mirror-link.tsx）：第一个 2xx 的线路
  * 才算数；四条线路都不通就直接回 GitHub 原址兜底。
  * 不是加速链接（比如安装说明页 /install）就原样返回，不探测。
+ *
+ * 最后一道防线：只有 release 资产才允许把浏览器导航到加速站域名。万一哪里又把 GitHub 网页
+ * （比如 releases 页面）套了加速前缀，点下去会打开加速站自己的落地页——这里直接回 GitHub
+ * 原址，绝不导航到加速站点。
+ *
  * 传了 fetchImpl / timeoutMs（测试用）时不共用缓存。
  */
 export function pickReachableDownloadUrl(url: string, options: PickReachableOptions = {}): Promise<string> {
   const raw = unproxyUrl(url);
   if (raw === url) return Promise.resolve(url);
+  if (!isReleaseAssetUrl(raw)) return Promise.resolve(raw);
 
   // 以「当前这条链接」为键：换了线路（比如 API 回退到 v4）要重新探，别沿用上一轮的结论。
   // fresh 用于「每次点击都测」：当次绕过缓存，重新发 HEAD。

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { ButtonLink } from "@/components/button";
 import { DownloadIcon } from "@/components/icons";
 import { AndroidIcon, LinuxIcon, WindowsIcon } from "@/components/os-icons";
-import { GH_PROXY, RELEASES_API_URL, RELEASES_PAGE_URL, detectPlatform } from "@/lib/downloads";
+import { DEFAULT_DOWNLOAD, RELEASES_API_URL, RELEASES_PAGE_URL, detectPlatform, proxyUrl } from "@/lib/downloads";
 import type { DownloadPlatform } from "@/lib/downloads";
+import { useMirrorDownload } from "@/components/mirror-link";
 import { useDownloadMessages } from "@/i18n/locale";
 
 /**
@@ -14,7 +15,12 @@ import { useDownloadMessages } from "@/i18n/locale";
  *
  * 顶部是版本号 + GitHub Releases，下面平台 Tabs（检测到的平台自动选中并挂「推荐」），
  * 同一时间只显示一个下载面板；没有标题、说明、FAQ、步骤。
- * release 信息在客户端拉一次（gh-proxy 加速，失败就退回静态版本和 Releases 页面）。
+ * release 信息在客户端拉一次（gh-proxy 加速，失败就退回站内安装说明页）。
+ *
+ * 硬规则：下载按钮的 href 只能是「release 资产直链（套加速前缀）」或站内安装说明页。
+ * 绝不能是套了加速前缀的 GitHub 网页——代理网页会落到加速站自己的落地页，用户就
+ * 「跳转到加速站点」了。所以 release 还没拉回来 / 拉取失败时，按钮指向 /install，
+ * 而不是任何加速站地址；点下载时再由 useMirrorDownload 现测线路并回退 GitHub 原址。
  */
 
 type SupportedPlatform = "windows" | "linux" | "android";
@@ -45,6 +51,7 @@ export function DownloadPage() {
   const [detected, setDetected] = useState<SupportedPlatform | null>(null);
   const [version, setVersion] = useState(FALLBACK_VERSION);
   const [urls, setUrls] = useState<AssetUrls>({});
+  const { probing, follow } = useMirrorDownload();
 
   // 平台检测：URL 的 ?os= 优先（首页按钮带过来），其次 UA。
   useEffect(() => {
@@ -57,7 +64,7 @@ export function DownloadPage() {
     setSelected(supported ?? "windows");
   }, []);
 
-  // 拉最新 release：版本号 + 各平台直链；失败就用静态兜底。
+  // 拉最新 release：版本号 + 各平台直链；失败就保持站内安装说明页兜底。
   useEffect(() => {
     const controller = new AbortController();
     let alive = true;
@@ -70,8 +77,9 @@ export function DownloadPage() {
 
         const assets = Array.isArray(release.assets) ? release.assets : [];
         const find = (pattern: RegExp) => assets.find((asset) => pattern.test(asset.name));
+        // 资产直链套加速前缀（proxyUrl 会拒绝任何非文件的地址，防止再把网页代理进来）
         const proxied = (asset: { browser_download_url: string } | undefined) =>
-          asset ? `${GH_PROXY}/${asset.browser_download_url}` : undefined;
+          asset ? proxyUrl(asset.browser_download_url) : undefined;
 
         setUrls({
           windows: proxied(find(/x64-setup\.exe$/i) ?? find(/setup\.exe$/i)),
@@ -82,7 +90,7 @@ export function DownloadPage() {
         });
       })
       .catch(() => {
-        /* 网络失败：保留静态版本 + Releases 链接 */
+        /* 网络失败：版本号保持兜底值，下载按钮保持站内安装说明页（绝不指向加速站） */
       });
 
     return () => {
@@ -92,9 +100,15 @@ export function DownloadPage() {
   }, []);
 
   const downloadUrl = selected === "windows" ? urls.windows : selected === "android" ? urls.android : undefined;
-  const primaryHref = downloadUrl ?? RELEASES_PAGE_URL;
+  // 拉不到资产就回站内安装说明页：那里有每次发版同步好的直链。
+  // 绝不回退到任何加速站地址（代理网页 = 加速站落地页）。
+  const fallbackHref = DEFAULT_DOWNLOAD.url;
+  const primaryHref = downloadUrl ?? fallbackHref;
   const label =
     selected === "windows" ? copy.windowsDownload : selected === "android" ? copy.androidDownload : "";
+  const followDownload = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    void follow(event, href);
+  };
 
   return (
     <section className="mx-auto flex w-[min(100%-3rem,72rem)] flex-1 flex-col items-center justify-center py-10 text-center sm:py-12">
@@ -175,9 +189,9 @@ export function DownloadPage() {
             ].map((pkg) => (
               <a
                 key={pkg.key}
-                href={urls[pkg.key as keyof AssetUrls] ?? RELEASES_PAGE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={urls[pkg.key as keyof AssetUrls] ?? fallbackHref}
+                onClick={(event) => followDownload(event, urls[pkg.key as keyof AssetUrls] ?? fallbackHref)}
+                aria-busy={probing || undefined}
                 className="flex min-w-0 flex-col rounded-lg border border-border bg-bg px-3 py-2.5 transition-colors hover:border-fg"
               >
                 <b className="font-mono text-xs font-semibold">{pkg.label}</b>
@@ -188,8 +202,8 @@ export function DownloadPage() {
         ) : (
           <ButtonLink
             href={primaryHref}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={(event) => followDownload(event, primaryHref)}
+            aria-busy={probing}
             variant="primary"
             size="lg"
             className="h-[52px] justify-center gap-2 rounded-xl px-6 text-[15px] sm:min-w-[200px]"
