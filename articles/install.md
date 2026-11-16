@@ -2,21 +2,21 @@
 
 <!-- downloads:start -->
 
-> 当前版本 **0.12.0-2266**，以下为加速服务代理链接，您也可以在 [releases](https://github.com/unclejeen/knloop_website/releases) 页面直接下载。
+> 当前版本 **0.12.0-2273**，以下为加速服务代理链接，您也可以在 [releases](https://github.com/unclejeen/knloop_website/releases) 页面直接下载。
 
 ### Windows
 
-- [knloop_0.12.0-2266_windows-x64-setup.exe](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2266/knloop_0.12.0-2266_windows-x64-setup.exe)
+- [knloop_0.12.0-2273_windows-x64-setup.exe](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2273/knloop_0.12.0-2273_windows-x64-setup.exe)
 
 ### Android
 
-- [knloop_0.12.0-2266_android-arm64-v8a.apk](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2266/knloop_0.12.0-2266_android-arm64-v8a.apk)
+- [knloop_0.12.0-2273_android-arm64-v8a.apk](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2273/knloop_0.12.0-2273_android-arm64-v8a.apk)
 
 ### Linux（有多个包，按你的发行版选一个）
 
-- [knloop_0.12.0-2266_linux-amd64.deb](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2266/knloop_0.12.0-2266_linux-amd64.deb) — deb（Debian / Ubuntu）
-- [knloop_0.12.0-2266_linux-x86_64.rpm](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2266/knloop_0.12.0-2266_linux-x86_64.rpm) — rpm（Fedora / RHEL / openSUSE）
-- [knloop_0.12.0-2266_linux-x86_64.flatpak](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2266/knloop_0.12.0-2266_linux-x86_64.flatpak) — Flatpak
+- [knloop_0.12.0-2273_linux-amd64.deb](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2273/knloop_0.12.0-2273_linux-amd64.deb) — deb（Debian / Ubuntu）
+- [knloop_0.12.0-2273_linux-x86_64.rpm](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2273/knloop_0.12.0-2273_linux-x86_64.rpm) — rpm（Fedora / RHEL / openSUSE）
+- [knloop_0.12.0-2273_linux-x86_64.flatpak](https://gh-proxy.org/https://github.com/unclejeen/knloop_website/releases/download/0.12.0-2273/knloop_0.12.0-2273_linux-x86_64.flatpak) — Flatpak
 
 ### macOS / iOS
 
